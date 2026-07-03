@@ -212,7 +212,7 @@
   let editingExercise = null;
 
   let plateCalcBar = '45';
-  let plateCounts = { 45: 0, 35: 0, 25: 0, 10: 0, 5: 0, 2.5: 0 };
+  let plateStack = [];
 
   let stopwatchElapsedMs = 0;
   let stopwatchStartedAt = null;
@@ -802,10 +802,11 @@
     } else {
       const grid = document.createElement('div');
       grid.className = 'wt-timer-grid';
-      [30, 60, 90, 180].forEach(sec => {
+      [30, 60, 90, 120].forEach(sec => {
         const b = document.createElement('button');
         b.className = 'wt-btn wt-btn-ghost';
-        b.textContent = sec < 60 ? sec + 's' : (sec / 60) + ':00';
+        const m = Math.floor(sec / 60), s = sec % 60;
+        b.textContent = m + ':' + String(s).padStart(2, '0');
         b.onclick = () => startRestTimer(sec);
         grid.appendChild(b);
       });
@@ -815,11 +816,15 @@
   }
 
   const PLATE_SIZES = [45, 35, 25, 10, 5, 2.5];
+  const PLATE_COLORS = TEMPLATE_COLORS;
 
-  function computePlateTotal(barWeight) {
-    let total = barWeight;
-    PLATE_SIZES.forEach(p => { total += plateCounts[p] * 2 * p; });
-    return total;
+  function plateColor(weight) {
+    const idx = PLATE_SIZES.indexOf(weight);
+    return PLATE_COLORS[idx % PLATE_COLORS.length];
+  }
+
+  function computePlateStackTotal(barWeight) {
+    return barWeight + plateStack.reduce((sum, p) => sum + p, 0);
   }
 
   function buildPlateCalcWidget() {
@@ -831,7 +836,7 @@
     wrap.appendChild(title);
 
     const barRow = document.createElement('div');
-    barRow.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;';
+    barRow.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:10px;';
     const barLabel = document.createElement('label');
     barLabel.style.cssText = 'font-size:11px;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:0.3px;';
     barLabel.textContent = 'Bar (lbs)';
@@ -845,69 +850,56 @@
     wrap.appendChild(barRow);
 
     const totalDisplay = document.createElement('div');
-    totalDisplay.style.cssText = 'text-align:center;font-size:26px;font-weight:800;color:var(--accent);margin-bottom:4px;font-variant-numeric:tabular-nums;';
+    totalDisplay.style.cssText = 'text-align:center;font-size:26px;font-weight:800;color:var(--accent);margin-bottom:14px;font-variant-numeric:tabular-nums;';
     wrap.appendChild(totalDisplay);
-    const totalLabel = document.createElement('div');
-    totalLabel.style.cssText = 'text-align:center;font-size:10px;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:16px;';
-    totalLabel.textContent = 'Total (bar + plates, both sides)';
-    wrap.appendChild(totalLabel);
 
-    const list = document.createElement('div');
-    list.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+    const stackWrap = document.createElement('div');
+    stackWrap.style.cssText = 'display:flex;align-items:flex-end;gap:4px;min-height:56px;overflow-x:auto;padding:0 2px 8px;margin-bottom:14px;border-bottom:1px solid var(--iron-700);';
+    wrap.appendChild(stackWrap);
 
-    function updateTotal() {
+    const btnGrid = document.createElement('div');
+    btnGrid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;';
+
+    function refresh() {
       const bar = parseFloat(barInput.value) || 0;
       plateCalcBar = barInput.value;
-      totalDisplay.textContent = computePlateTotal(bar) + ' lb';
+      totalDisplay.textContent = computePlateStackTotal(bar) + ' lb';
+
+      stackWrap.innerHTML = '';
+      if (plateStack.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'wt-sub';
+        empty.textContent = 'Tap a plate below to add it';
+        stackWrap.appendChild(empty);
+      } else {
+        plateStack.forEach(p => {
+          const bar_ = document.createElement('div');
+          const h = 16 + (p / 45) * 40;
+          bar_.style.cssText = `width:16px; height:${h}px; background:${plateColor(p)}; border-radius:3px 3px 0 0; flex-shrink:0;`;
+          bar_.title = p + ' lb';
+          stackWrap.appendChild(bar_);
+        });
+      }
     }
 
     PLATE_SIZES.forEach(p => {
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex; align-items:center; justify-content:space-between;';
-      const label = document.createElement('div');
-      label.style.cssText = 'font-size:14px; font-weight:700;';
-      label.textContent = p + ' lb';
-      const counterWrap = document.createElement('div');
-      counterWrap.style.cssText = 'display:flex; align-items:center; gap:12px;';
-      const minusBtn = document.createElement('button');
-      minusBtn.className = 'wt-btn wt-btn-ghost';
-      minusBtn.style.cssText = 'width:36px; padding:8px 0;';
-      minusBtn.textContent = '−';
-      const countEl = document.createElement('div');
-      countEl.style.cssText = 'min-width:20px; text-align:center; font-size:15px; font-weight:800; font-variant-numeric:tabular-nums;';
-      countEl.textContent = plateCounts[p];
-      const plusBtn = document.createElement('button');
-      plusBtn.className = 'wt-btn wt-btn-ghost';
-      plusBtn.style.cssText = 'width:36px; padding:8px 0;';
-      plusBtn.textContent = '+';
-      minusBtn.onclick = () => {
-        plateCounts[p] = Math.max(0, plateCounts[p] - 1);
-        countEl.textContent = plateCounts[p];
-        updateTotal();
-      };
-      plusBtn.onclick = () => {
-        plateCounts[p] = plateCounts[p] + 1;
-        countEl.textContent = plateCounts[p];
-        updateTotal();
-      };
-      counterWrap.appendChild(minusBtn);
-      counterWrap.appendChild(countEl);
-      counterWrap.appendChild(plusBtn);
-      row.appendChild(label);
-      row.appendChild(counterWrap);
-      list.appendChild(row);
+      const btn = document.createElement('button');
+      btn.className = 'wt-btn';
+      btn.style.cssText = `background:${plateColor(p)}; color:var(--iron-900); font-weight:800; padding:14px 0;`;
+      btn.textContent = p + ' lb';
+      btn.onclick = () => { plateStack.push(p); refresh(); };
+      btnGrid.appendChild(btn);
     });
-    wrap.appendChild(list);
+    wrap.appendChild(btnGrid);
 
-    const resetBtn = document.createElement('button');
-    resetBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
-    resetBtn.style.marginTop = '14px';
-    resetBtn.textContent = 'Reset';
-    resetBtn.onclick = () => { PLATE_SIZES.forEach(p => { plateCounts[p] = 0; }); render(); };
-    wrap.appendChild(resetBtn);
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+    clearBtn.textContent = 'Clear';
+    clearBtn.onclick = () => { plateStack = []; refresh(); };
+    wrap.appendChild(clearBtn);
 
-    barInput.addEventListener('input', updateTotal);
-    updateTotal();
+    barInput.addEventListener('input', refresh);
+    refresh();
 
     return wrap;
   }
