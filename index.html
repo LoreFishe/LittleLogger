@@ -175,7 +175,8 @@
       secondary: { name: 'Secondary Session', exerciseIds: ['walking-lunge','cable-row','ohp','leg-curl','incline-press','face-pull','lateral-raise','cable-crunch'] }
     },
     sessions: [],
-    draft: null
+    draft: null,
+    plateCalcBar: '45'
   };
 
   const TEMPLATE_COLORS = ['#ec4899', '#3b82f6', '#f0a83c', '#22c55e', '#a78bfa', '#22d3ee'];
@@ -244,6 +245,7 @@
       data = JSON.parse(JSON.stringify(DEFAULT_DATA));
       persist();
     }
+    plateCalcBar = data.plateCalcBar || '45';
     if (data.draft) view = 'session';
     render();
   }
@@ -875,7 +877,11 @@
 
     function refresh() {
       const bar = parseFloat(barInput.value) || 0;
-      plateCalcBar = barInput.value;
+      if (plateCalcBar !== barInput.value) {
+        plateCalcBar = barInput.value;
+        data.plateCalcBar = barInput.value;
+        scheduleSave();
+      }
       totalDisplay.textContent = computePlateStackTotal(bar) + ' lb';
 
       stackWrap.innerHTML = '';
