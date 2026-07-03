@@ -1,4 +1,4 @@
-const CACHE_NAME = 'little-logger-v1';
+const CACHE_NAME = 'little-logger-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -25,6 +25,23 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const isPage = event.request.mode === 'navigate' || event.request.destination === 'document';
+  if (isPage) {
+    // Network-first for the app itself, so a fresh load always shows the latest
+    // version when online. Falls back to cache only when offline (gym, no signal).
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, response.clone()));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Cache-first for static assets (icons, manifest) since they rarely change.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const network = fetch(event.request)
