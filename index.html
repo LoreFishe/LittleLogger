@@ -482,6 +482,8 @@
     discardArmed = false;
     cancelRestTimer();
     data.draft = null;
+    pickerOpenFor = null;
+    widgetPickerOpen = false;
     scheduleSave();
     view = 'home';
     render();
@@ -504,6 +506,8 @@
     });
     data.draft = null;
     cancelRestTimer();
+    pickerOpenFor = null;
+    widgetPickerOpen = false;
     scheduleSave();
     showToast('Session saved');
     view = 'home';
@@ -686,7 +690,8 @@
   function buildSession() {
     const wrap = document.createElement('div');
     const draft = data.draft;
-    const tplColor = getTemplateColor(data.templates[draft.templateKey]);
+    const tpl = data.templates[draft.templateKey];
+    const tplColor = getTemplateColor(tpl);
 
     const sh = document.createElement('div');
     sh.className = 'wt-session-header';
@@ -722,10 +727,43 @@
       wrap.appendChild(addBtn);
     }
 
-    getTemplateWidgets(data.templates[draft.templateKey]).forEach(key => {
+    getTemplateWidgets(tpl).forEach(key => {
       const def = WIDGET_DEFS[key];
-      if (def) wrap.appendChild(def.build());
+      if (!def) return;
+      const widgetEl = def.build();
+      const titleEl = widgetEl.querySelector('.wt-manage-section-title');
+      if (titleEl) {
+        const label = document.createElement('span');
+        label.textContent = titleEl.textContent;
+        titleEl.textContent = '';
+        titleEl.style.display = 'flex';
+        titleEl.style.justifyContent = 'space-between';
+        titleEl.style.alignItems = 'center';
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = '×';
+        removeBtn.title = 'Remove widget';
+        removeBtn.style.cssText = 'background:none;border:none;color:var(--chalk-dim);font-size:16px;cursor:pointer;line-height:1;padding:0;';
+        removeBtn.onclick = () => {
+          tpl.widgets = getTemplateWidgets(tpl).filter(w => w !== key);
+          scheduleSave();
+          render();
+        };
+        titleEl.appendChild(label);
+        titleEl.appendChild(removeBtn);
+      }
+      wrap.appendChild(widgetEl);
     });
+
+    if (widgetPickerOpen) {
+      wrap.appendChild(buildWidgetPicker(tpl));
+    } else {
+      const addWidgetBtn = document.createElement('button');
+      addWidgetBtn.className = 'wt-add-ex-btn';
+      addWidgetBtn.textContent = '+ Add Widget';
+      addWidgetBtn.onclick = () => { widgetPickerOpen = true; render(); };
+      wrap.appendChild(addWidgetBtn);
+    }
+
     wrap.appendChild(buildSessionNotes());
 
     const saveBtn = document.createElement('button');
@@ -1440,32 +1478,7 @@
     });
 
     if (widgetPickerOpen) {
-      const panel = document.createElement('div');
-      panel.className = 'wt-card';
-      const notActive = Object.keys(WIDGET_DEFS).filter(k => !activeWidgets.includes(k));
-      if (notActive.length === 0) {
-        panel.innerHTML = '<div class="wt-sub">All widgets are already active for this template.</div>';
-      } else {
-        notActive.forEach(key => {
-          const def = WIDGET_DEFS[key];
-          const item = document.createElement('div');
-          item.className = 'wt-picker-item';
-          item.innerHTML = `<div class="wt-picker-name">${escapeHtml(def.label)}</div>`;
-          const addWBtn = document.createElement('button');
-          addWBtn.className = 'wt-btn wt-btn-primary wt-btn-sm';
-          addWBtn.textContent = 'Add';
-          addWBtn.onclick = () => { tpl.widgets = [...activeWidgets, key]; widgetPickerOpen = false; scheduleSave(); render(); };
-          item.appendChild(addWBtn);
-          panel.appendChild(item);
-        });
-      }
-      const cancelWBtn = document.createElement('button');
-      cancelWBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
-      cancelWBtn.style.marginTop = '10px';
-      cancelWBtn.textContent = 'Cancel';
-      cancelWBtn.onclick = () => { widgetPickerOpen = false; render(); };
-      panel.appendChild(cancelWBtn);
-      wrap.appendChild(panel);
+      wrap.appendChild(buildWidgetPicker(tpl));
     } else {
       const addWidgetBtn = document.createElement('button');
       addWidgetBtn.className = 'wt-add-ex-btn';
@@ -1475,6 +1488,36 @@
     }
 
     return wrap;
+  }
+
+  function buildWidgetPicker(tpl) {
+    const panel = document.createElement('div');
+    panel.className = 'wt-card';
+    const activeWidgets = getTemplateWidgets(tpl);
+    const notActive = Object.keys(WIDGET_DEFS).filter(k => !activeWidgets.includes(k));
+    if (notActive.length === 0) {
+      panel.innerHTML = '<div class="wt-sub">All widgets are already active for this template.</div>';
+    } else {
+      notActive.forEach(key => {
+        const def = WIDGET_DEFS[key];
+        const item = document.createElement('div');
+        item.className = 'wt-picker-item';
+        item.innerHTML = `<div class="wt-picker-name">${escapeHtml(def.label)}</div>`;
+        const addWBtn = document.createElement('button');
+        addWBtn.className = 'wt-btn wt-btn-primary wt-btn-sm';
+        addWBtn.textContent = 'Add';
+        addWBtn.onclick = () => { tpl.widgets = [...activeWidgets, key]; widgetPickerOpen = false; scheduleSave(); render(); };
+        item.appendChild(addWBtn);
+        panel.appendChild(item);
+      });
+    }
+    const cancelWBtn = document.createElement('button');
+    cancelWBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+    cancelWBtn.style.marginTop = '10px';
+    cancelWBtn.textContent = 'Cancel';
+    cancelWBtn.onclick = () => { widgetPickerOpen = false; render(); };
+    panel.appendChild(cancelWBtn);
+    return panel;
   }
 
   function buildHistory() {
