@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Little Logger</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#17181c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Little Logger">
+<style>
+  html, body { height: 100%; margin: 0; }
+  :root {
+    --iron-900: #17181c;
+    --iron-800: #202126;
+    --iron-700: #2a2b31;
+    --iron-600: #3a3c44;
+    --chalk: #f2f0ea;
+    --chalk-dim: #9a9ba3;
+    --accent: #ec4899;
+    --green: #6fbf73;
+    --danger: #e5342b;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  .wt-root {
+    background: var(--iron-900);
+    color: var(--chalk);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100%;
+    padding: 18px 14px 60px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .wt-header { display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .wt-title { font-size: 22px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .wt-plate { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--accent); position: relative; flex-shrink: 0; }
+  .wt-plate::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: var(--accent); }
+  .wt-sub { font-size: 12px; color: var(--chalk-dim); }
+  .wt-home-btn { display: block; width: 100%; text-align: left; background: var(--iron-800); border: 1px solid var(--accent); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; cursor: pointer; }
+  .wt-home-btn-title { font-size: 16px; font-weight: 700; color: var(--accent); }
+  .wt-home-btn-sub { font-size: 12px; color: var(--chalk-dim); margin-top: 2px; }
+  .wt-row2 { display: flex; gap: 10px; }
+  .wt-row2 > * { flex: 1; }
+  .wt-card { background: var(--iron-800); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1px solid var(--iron-700); }
+  .wt-ex-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 8px; }
+  .wt-ex-name { font-size: 15px; font-weight: 700; }
+  .wt-ex-meta { font-size: 11px; color: var(--chalk-dim); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .wt-last { font-size: 11px; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .wt-sets { display: flex; flex-direction: column; gap: 8px; }
+  .wt-set-row { display: grid; grid-template-columns: 24px auto 1fr 1fr; gap: 8px; align-items: center; }
+  .wt-set-num { font-size: 12px; color: var(--chalk-dim); text-align: center; font-weight: 700; }
+  .wt-field { display: flex; align-items: center; background: var(--iron-900); border: 1px solid var(--iron-600); border-radius: 6px; overflow: hidden; touch-action: pan-y; }
+  .wt-field-dragging { border-color: var(--accent); }
+  .wt-field input { width: 100%; background: transparent; border: none; color: var(--chalk); font-size: 16px; padding: 9px 8px; text-align: center; font-variant-numeric: tabular-nums; }
+  .wt-field input:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .wt-field .wt-unit { font-size: 10px; color: var(--chalk-dim); padding-right: 8px; text-transform: uppercase; }
+  .wt-addset-btn { background: none; border: 1px dashed var(--iron-600); color: var(--chalk-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; padding: 6px; border-radius: 6px; margin-top: 8px; cursor: pointer; width: 100%; }
+  .wt-btn { border: none; border-radius: 6px; padding: 10px 14px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; }
+  .wt-btn:active { opacity: 0.7; }
+  .wt-btn-primary { background: var(--accent); color: var(--iron-900); }
+  .wt-btn-ghost { background: var(--iron-700); color: var(--chalk); }
+  .wt-btn-danger { background: transparent; color: var(--danger); border: 1px solid #6a3530; }
+  .wt-btn-sm { padding: 6px 10px; font-size: 11px; }
+  .wt-btn-full { width: 100%; }
+  .wt-actions-row { display: flex; gap: 8px; margin-top: 14px; }
+  .wt-session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .wt-session-title { font-size: 18px; font-weight: 800; text-transform: uppercase; }
+  .wt-session-time { font-size: 11px; color: var(--chalk-dim); }
+  .wt-add-ex-btn { border: 1px dashed var(--iron-600); background: none; color: var(--accent); border-radius: var(--radius); padding: 14px; width: 100%; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; margin-bottom: 12px; }
+  .wt-picker-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px; border-bottom: 1px solid var(--iron-700); }
+  .wt-picker-item:last-child { border-bottom: none; }
+  .wt-picker-name { font-size: 14px; }
+  .wt-picker-meta { font-size: 11px; color: var(--chalk-dim); }
+  .wt-add-form input, .wt-add-form select, .wt-add-form textarea { width: 100%; background: var(--iron-900); border: 1px solid var(--iron-600); color: var(--chalk); border-radius: 6px; padding: 9px 10px; font-size: 14px; margin-bottom: 8px; font-family: inherit; }
+  .wt-add-form label { font-size: 11px; color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.3px; display: block; margin-bottom: 3px; }
+  .wt-form-row { display: flex; gap: 8px; }
+  .wt-form-row > div { flex: 1; }
+  .wt-history-item { background: var(--iron-800); border: 1px solid var(--iron-700); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; }
+  .wt-history-item-head { display: flex; justify-content: space-between; }
+  .wt-history-item-title { font-weight: 700; font-size: 14px; }
+  .wt-history-item-date { font-size: 11px; color: var(--chalk-dim); }
+  .wt-history-detail { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--iron-700); font-size: 12px; color: var(--chalk-dim); }
+  .wt-history-detail-row { display: flex; justify-content: space-between; padding: 3px 0; }
+  .wt-history-detail-row span:first-child { color: var(--chalk); }
+  .wt-history-notes { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--iron-700); font-style: italic; color: var(--chalk-dim); font-size: 12px; }
+  .wt-back-btn { background: var(--iron-900); border: none; color: var(--chalk-dim); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 12px 14px 12px 4px; margin: -12px 0 0 -4px; border-radius: 6px; position: sticky; top: 0; z-index: 5; }
+  .wt-back-btn:active { background: var(--iron-800); }
+  .wt-empty { text-align: center; color: var(--chalk-dim); font-size: 13px; padding: 30px 10px; }
+  .wt-manage-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--chalk-dim); font-weight: 700; margin-bottom: 8px; }
+  .wt-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: var(--iron-900); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 10; }
+  .wt-drag-handle { display: flex; flex-direction: row; gap: 4px; align-items: center; justify-content: center; padding: 0 8px; cursor: grab; touch-action: none; }
+  .wt-drag-handle span { width: 2px; height: 16px; background: var(--chalk-dim); border-radius: 1px; display: block; }
+  .wt-toast.show { opacity: 1; }
+  .wt-swipe-wrap { position: relative; overflow: hidden; border-radius: var(--radius); margin-bottom: 10px; width: 100%; }
+  .wt-swipe-delete { position: absolute; top: 0; right: 0; bottom: 0; width: 70px; background: var(--danger); color: var(--iron-900); border: none; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; z-index: 0; }
+  .wt-swipe-actions { position: absolute; top: 0; left: 0; bottom: 0; width: 50%; z-index: 0; display: flex; flex-direction: column; }
+  .wt-swipe-fill { flex: 65; background: var(--accent); color: var(--iron-900); border: none; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2px; }
+  .wt-swipe-fill:disabled { background: var(--iron-700); color: var(--chalk-dim); }
+  .wt-swipe-card-delete { flex: 35; background: var(--danger); color: var(--iron-900); border: none; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
+  .wt-ex-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .wt-ex-row-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 120px; display: flex; z-index: 0; }
+  .wt-ex-row-edit { flex: 1; background: var(--iron-700); color: var(--chalk); border: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
+  .wt-ex-row-delete { flex: 1; background: var(--danger); color: var(--iron-900); border: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
+  .wt-swipe-content { position: relative; background: var(--iron-800); touch-action: pan-y; width: 100%; box-sizing: border-box; z-index: 1; margin-bottom: 0 !important; user-select: none; }
+  .wt-set-row-swipe .wt-swipe-content { padding: 2px 0; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; }
+  .wt-set-row-swipe .wt-swipe-delete { width: 60px; font-size: 11px; }
+  .wt-discard-confirm { background: var(--danger) !important; color: var(--iron-900) !important; }
+  .wt-timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .wt-timer-display { text-align: center; }
+  .wt-timer-remaining { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); margin: 4px 0 10px; }
+  .wt-timer-track { background: var(--iron-700); border-radius: 4px; height: 6px; overflow: hidden; margin-bottom: 12px; }
+  .wt-timer-bar { height: 100%; background: var(--accent); width: 100%; }
+  .wt-chart-wrap { overflow-x: auto; padding-bottom: 4px; }
+  .wt-chart-bars { display: flex; align-items: flex-end; gap: 10px; min-height: 140px; padding-top: 20px; }
+  .wt-chart-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; width: 34px; }
+  .wt-chart-bar { width: 22px; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
+  .wt-chart-val { font-size: 10px; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+  .wt-chart-date { font-size: 9px; color: var(--chalk-dim); }
+  .wt-stat-row { display: flex; justify-content: space-around; margin-top: 14px; text-align: center; }
+  .wt-stat-val { font-size: 16px; font-weight: 800; color: var(--accent); }
+  .wt-stat-label { font-size: 10px; color: var(--chalk-dim); text-transform: uppercase; }
+  .wt-cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .wt-cal-nav { background: var(--iron-700); border: none; color: var(--chalk); width: 30px; height: 30px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+  .wt-cal-title { font-size: 14px; font-weight: 700; }
+  .wt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .wt-cal-dow { font-size: 10px; color: var(--chalk-dim); text-align: center; padding-bottom: 4px; }
+  .wt-cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 12px; background: var(--iron-900); cursor: default; position: relative; }
+  .wt-cal-day.has-session { background: var(--iron-700); cursor: pointer; font-weight: 700; }
+  .wt-cal-day.empty { visibility: hidden; }
+  .wt-cal-selected-list { margin-top: 14px; }
+  .wt-cal-dots { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; }
+  .wt-cal-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .wt-swatch-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .wt-swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+  .wt-swatch.active { border-color: var(--chalk); }
+</style>
+</head>
+<body>
+
+<div class="wt-root" id="wt-root"></div>
+<div class="wt-toast" id="wt-toast">Session saved</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'workout-data-v2';
+  const root = document.getElementById('wt-root');
+  const toastEl = document.getElementById('wt-toast');
+
+  const DEFAULT_LIBRARY = [
+    { id: 'leg-press', name: 'Leg Press', sets: 3, repRange: '8-12', type: 'weight' },
+    { id: 'lat-pulldown', name: 'Lat Pulldown', sets: 3, repRange: '8-12', type: 'weight' },
+    { id: 'chest-press', name: 'DB Chest Press', sets: 3, repRange: '6-10', type: 'weight' },
+    { id: 'rdl', name: 'DB RDL', sets: 3, repRange: '8-12', type: 'weight' },
+    { id: 'calf-raise', name: 'Standing Calf Raise', sets: 3, repRange: '12-15', type: 'weight' },
+    { id: 'walking-lunge', name: 'DB Walking Lunge', sets: 3, repRange: '10-12', type: 'weight' },
+    { id: 'cable-row', name: 'Seated Cable Row', sets: 3, repRange: '8-12', type: 'weight' },
+    { id: 'ohp', name: 'DB Overhead Press', sets: 3, repRange: '6-10', type: 'weight' },
+    { id: 'leg-curl', name: 'Leg Curl', sets: 3, repRange: '8-12', type: 'weight' },
+    { id: 'incline-press', name: 'Incline DB Press', sets: 3, repRange: '10-12', type: 'weight' },
+    { id: 'face-pull', name: 'Face Pull', sets: 3, repRange: '12-20', type: 'weight' },
+    { id: 'lateral-raise', name: 'DB Lateral Raise', sets: 3, repRange: '12-15', type: 'weight' },
+    { id: 'cable-crunch', name: 'Cable Crunch', sets: 3, repRange: '10-15', type: 'weight' }
+  ];
+
+  const DEFAULT_DATA = {
+    library: DEFAULT_LIBRARY,
+    templates: {
+      core: { name: 'Core Session', exerciseIds: ['leg-press','lat-pulldown','chest-press','rdl','calf-raise'] },
+      secondary: { name: 'Secondary Session', exerciseIds: ['walking-lunge','cable-row','ohp','leg-curl','incline-press','face-pull','lateral-raise','cable-crunch'] }
+    },
+    sessions: [],
+    draft: null
+  };
+
+  const TEMPLATE_COLORS = ['#ec4899', '#3b82f6', '#f0a83c', '#22c55e', '#a78bfa', '#22d3ee'];
+  const DEFAULT_TEMPLATE_COLOR = '#ec4899';
+
+  function getTemplateColor(tpl) {
+    return (tpl && tpl.color) || DEFAULT_TEMPLATE_COLOR;
+  }
+
+  const WIDGET_DEFS = {
+    resttimer: { label: 'Rest Timer', build: buildRestTimer },
+    platecalc: { label: 'Plate Calculator', build: buildPlateCalcWidget },
+    stopwatch: { label: 'Stopwatch', build: buildStopwatchWidget }
+  };
+
+  function getTemplateWidgets(tpl) {
+    if (!tpl || !tpl.widgets) return ['resttimer'];
+    return tpl.widgets;
+  }
+
+  let data = null;
+  let view = 'home';
+  let manageTab = 'core';
+  let pickerOpenFor = null;
+  let creatingNew = false;
+  let renamingTemplate = null;
+  let creatingTemplate = false;
+  let templateDeleteArmed = false;
+  let historyExpanded = null;
+  let trendsExerciseId = null;
+  let calendarMonthOffset = 0;
+  let selectedCalendarDay = null;
+  let widgetPickerOpen = false;
+  let editingExercise = null;
+
+  let plateCalcBar = '45';
+  let plateCounts = { 45: 0, 35: 0, 25: 0, 10: 0, 5: 0, 2.5: 0 };
+
+  let stopwatchElapsedMs = 0;
+  let stopwatchStartedAt = null;
+  let stopwatchInterval = null;
+
+  let restTimerEndAt = null;
+  let restTimerSeconds = null;
+  let restTimerInterval = null;
+
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) throw new Error('no saved data');
+      data = JSON.parse(raw);
+    } catch (e) {
+      data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      persist();
+    }
+    if (data.draft) view = 'session';
+    render();
+  }
+
+  let saveTimeout = null;
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    catch (e) { console.error('save failed', e); }
+  }
+  function scheduleSave() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(persist, 400);
+  }
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(() => toastEl.classList.remove('show'), 1600);
+  }
+
+  function formatSeconds(sec) {
+    sec = Math.max(0, Math.round(sec));
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return m > 0 ? m + ':' + String(s).padStart(2, '0') : sec + 's';
+  }
+
+  const openSwipes = new Set();
+  document.addEventListener('pointerdown', e => {
+    openSwipes.forEach(sw => {
+      if (!sw.wrapEl.contains(e.target)) sw.close();
+    });
+  }, true);
+
+  function attachSwipe(contentEl, opts) {
+    opts = opts || {};
+    const reverse = !!opts.reverse;
+    let openDist = opts.distance || 80;
+    const openThreshold = opts.openThreshold != null ? opts.openThreshold : 1;
+    let startX = 0, startY = 0, currentX = 0, dragging = false, open = false, axisLocked = null;
+    contentEl.addEventListener('pointerdown', e => {
+      if (opts.handleSelector) {
+        if (!e.target.closest(opts.handleSelector)) return;
+      } else {
+        if (e.target.closest('button, input, select, textarea, a, label')) return;
+        if (opts.excludeSelector && e.target.closest(opts.excludeSelector)) return;
+      }
+      startX = e.clientX; startY = e.clientY;
+      dragging = true; axisLocked = null;
+      contentEl.style.transition = 'none';
+      if (opts.fraction) openDist = contentEl.getBoundingClientRect().width * opts.fraction;
+      try { contentEl.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    contentEl.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (axisLocked === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+        axisLocked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      }
+      if (axisLocked === 'y') return;
+      if (axisLocked === 'x') {
+        let val;
+        if (reverse) {
+          const base = open ? openDist : 0;
+          val = Math.max(0, Math.min(openDist, base + dx));
+        } else {
+          const base = open ? -openDist : 0;
+          val = Math.max(-openDist, Math.min(0, base + dx));
+        }
+        currentX = val;
+        contentEl.style.transform = 'translateX(' + val + 'px)';
+      }
+    });
+    const finish = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (axisLocked === 'x') {
+        contentEl.style.transition = 'transform 0.2s';
+        const shouldOpen = Math.abs(currentX) >= openDist * openThreshold;
+        if (shouldOpen) {
+          contentEl.style.transform = 'translateX(' + (reverse ? openDist : -openDist) + 'px)';
+          open = true;
+          openSwipes.add(controller);
+        } else {
+          contentEl.style.transform = 'translateX(0)';
+          open = false;
+          openSwipes.delete(controller);
+        }
+        const suppressNextClick = (e) => { e.stopImmediatePropagation(); e.preventDefault(); };
+        contentEl.addEventListener('click', suppressNextClick, { capture: true, once: true });
+      }
+    };
+    contentEl.addEventListener('pointerup', finish);
+    contentEl.addEventListener('pointercancel', finish);
+    const controller = {
+      wrapEl: opts.wrapEl || contentEl,
+      isOpen: () => open,
+      close: () => {
+        if (!open) return;
+        open = false;
+        contentEl.style.transition = 'transform 0.2s';
+        contentEl.style.transform = 'translateX(0)';
+        openSwipes.delete(controller);
+      }
+    };
+    return controller;
+  }
+
+  function attachNumberSwipe(fieldEl, opts) {
+    const input = fieldEl.querySelector('input');
+    const step = opts.step;
+    const pxPerStep = opts.pxPerStep || 26;
+    let startX = 0, startY = 0, startVal = 0, dragging = false, axisLocked = null, appliedSteps = 0;
+
+    fieldEl.addEventListener('pointerdown', e => {
+      startX = e.clientX; startY = e.clientY;
+      startVal = parseFloat(input.value) || 0;
+      dragging = true; axisLocked = null; appliedSteps = 0;
+      try { fieldEl.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    fieldEl.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (axisLocked === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) {
+        axisLocked = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+        if (axisLocked === 'x') {
+          input.blur();
+          fieldEl.classList.add('wt-field-dragging');
+        }
+      }
+      if (axisLocked !== 'x') return;
+      e.preventDefault();
+      const steps = Math.round(dx / pxPerStep);
+      if (steps !== appliedSteps) {
+        appliedSteps = steps;
+        let newVal = Math.max(0, startVal + steps * step);
+        newVal = Math.round(newVal * 100) / 100;
+        input.value = newVal;
+        opts.onChange(newVal);
+      }
+    });
+    const finish = () => {
+      if (!dragging) return;
+      dragging = false;
+      fieldEl.classList.remove('wt-field-dragging');
+      if (axisLocked === 'x') {
+        const suppress = (ev) => { ev.stopImmediatePropagation(); ev.preventDefault(); };
+        input.addEventListener('click', suppress, { capture: true, once: true });
+      }
+      axisLocked = null;
+    };
+    fieldEl.addEventListener('pointerup', finish);
+    fieldEl.addEventListener('pointercancel', finish);
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+  }
+
+  function getLibraryEx(id) { return data.library.find(e => e.id === id); }
+
+  function setHasData(ex, s) {
+    const type = ex.type || 'weight';
+    if (type === 'checkbox') return !!s.checked;
+    if (type === 'timed') return !!s.seconds;
+    if (type === 'bodyweight') return !!s.reps;
+    return !!s.weight;
+  }
+
+  function getLastLoggedExercise(exerciseId) {
+    const past = data.sessions
+      .filter(s => s.exercises.some(e => e.exerciseId === exerciseId && e.sets.some(x => setHasData(e, x))))
+      .sort((a,b) => b.timestamp - a.timestamp);
+    if (past.length === 0) return null;
+    return past[0].exercises.find(e => e.exerciseId === exerciseId);
+  }
+
+  function findLastLoggedDisplay(exerciseId) {
+    const lastEx = getLastLoggedExercise(exerciseId);
+    if (!lastEx) return null;
+    const type = lastEx.type || 'weight';
+    if (type === 'checkbox') {
+      return lastEx.sets.some(s => s.checked) ? 'done last time' : null;
+    }
+    if (type === 'timed') {
+      const best = lastEx.sets.filter(s => s.seconds).sort((a,b) => (b.seconds||0)-(a.seconds||0))[0];
+      return best ? formatSeconds(best.seconds) : null;
+    }
+    if (type === 'bodyweight') {
+      const best = lastEx.sets.filter(s => s.reps).sort((a,b) => (b.reps||0)-(a.reps||0))[0];
+      return best ? best.reps + ' reps' : null;
+    }
+    const best = lastEx.sets.filter(s => s.weight).sort((a,b) => (b.weight||0)-(a.weight||0))[0];
+    return best ? best.weight + 'lb x' + best.reps : null;
+  }
+
+  function makeEmptySets(count) {
+    return Array.from({ length: count }, () => ({ weight: '', reps: '', seconds: '', checked: false }));
+  }
+
+  function startSession(templateKey) {
+    const tpl = data.templates[templateKey];
+    const exercises = tpl.exerciseIds.map(id => {
+      const lib = getLibraryEx(id);
+      const type = lib.type || 'weight';
+      return {
+        exerciseId: id,
+        name: lib.name,
+        type,
+        sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', checked: false }] : makeEmptySets(lib.sets)
+      };
+    });
+    data.draft = { templateKey, templateName: tpl.name, startedAt: Date.now(), notes: '', exercises };
+    scheduleSave();
+    view = 'session';
+    render();
+  }
+
+  function duplicateSessionAsDraft(session) {
+    if (data.draft) { showToast('Finish or discard your current session first'); return; }
+    data.draft = {
+      templateKey: session.templateKey,
+      templateName: session.templateName,
+      startedAt: Date.now(),
+      notes: '',
+      exercises: session.exercises.map(e => ({
+        exerciseId: e.exerciseId,
+        name: e.name,
+        type: e.type || 'weight',
+        sets: e.sets.map(s => ({ weight: s.weight, reps: s.reps, seconds: s.seconds, checked: s.checked }))
+      }))
+    };
+    scheduleSave();
+    view = 'session';
+    historyExpanded = null;
+    render();
+  }
+
+  let discardArmed = false;
+  function discardSession(btnEl) {
+    if (!discardArmed) {
+      discardArmed = true;
+      btnEl.textContent = 'Tap to confirm';
+      btnEl.classList.add('wt-discard-confirm');
+      setTimeout(() => { discardArmed = false; if (btnEl.isConnected) { btnEl.textContent = 'Discard'; btnEl.classList.remove('wt-discard-confirm'); } }, 2500);
+      return;
+    }
+    discardArmed = false;
+    cancelRestTimer();
+    data.draft = null;
+    scheduleSave();
+    view = 'home';
+    render();
+  }
+
+  function saveSession() {
+    const draft = data.draft;
+    const loggedExercises = draft.exercises.filter(e => e.sets.some(s => setHasData(e, s)));
+    if (loggedExercises.length === 0) {
+      showToast('Nothing logged — add a value first');
+      return;
+    }
+    data.sessions.push({
+      id: 'sess-' + Date.now(),
+      templateKey: draft.templateKey,
+      templateName: draft.templateName,
+      timestamp: draft.startedAt,
+      notes: draft.notes || '',
+      exercises: loggedExercises
+    });
+    data.draft = null;
+    cancelRestTimer();
+    scheduleSave();
+    showToast('Session saved');
+    view = 'home';
+    render();
+  }
+
+  function addExerciseToSession(exerciseId) {
+    const lib = getLibraryEx(exerciseId);
+    const type = lib.type || 'weight';
+    data.draft.exercises.push({
+      exerciseId,
+      name: lib.name,
+      type,
+      sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', checked: false }] : makeEmptySets(lib.sets)
+    });
+    pickerOpenFor = null;
+    creatingNew = false;
+    scheduleSave();
+    render();
+  }
+
+  function addNewLibraryExercise(fields) {
+    const id = fields.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') + '-' + Date.now().toString(36);
+    const newEx = { id, name: fields.name, sets: fields.sets, repRange: fields.repRange, type: fields.type || 'weight' };
+    data.library.push(newEx);
+    return id;
+  }
+
+  function createExerciseAndAdd(fields) {
+    addExerciseToSession(addNewLibraryExercise(fields));
+  }
+
+  function createExerciseAndAddToTemplate(tpl, fields) {
+    tpl.exerciseIds.push(addNewLibraryExercise(fields));
+    pickerOpenFor = null;
+    creatingNew = false;
+    scheduleSave();
+    render();
+  }
+
+  function updateLibraryExercise(id, fields) {
+    const ex = getLibraryEx(id);
+    if (!ex) return;
+    ex.name = fields.name;
+    ex.type = fields.type;
+    ex.sets = fields.sets;
+    ex.repRange = fields.repRange;
+    editingExercise = null;
+    scheduleSave();
+    render();
+  }
+
+  function deleteLibraryExercise(id) {
+    data.library = data.library.filter(e => e.id !== id);
+    Object.values(data.templates).forEach(tpl => {
+      tpl.exerciseIds = tpl.exerciseIds.filter(exId => exId !== id);
+    });
+    scheduleSave();
+    render();
+  }
+
+  function removeExerciseFromSession(idx) {
+    data.draft.exercises.splice(idx, 1);
+    scheduleSave();
+    render();
+  }
+
+  function startRestTimer(seconds) {
+    clearInterval(restTimerInterval);
+    restTimerSeconds = seconds;
+    restTimerEndAt = Date.now() + seconds * 1000;
+    render();
+    restTimerInterval = setInterval(tickRestTimer, 250);
+  }
+
+  function tickRestTimer() {
+    if (!restTimerEndAt) return;
+    const remaining = Math.max(0, Math.round((restTimerEndAt - Date.now()) / 1000));
+    const el = document.getElementById('wt-rest-remaining');
+    if (el) el.textContent = formatSeconds(remaining);
+    const bar = document.getElementById('wt-rest-bar');
+    if (bar) bar.style.width = Math.max(0, Math.min(100, (remaining / restTimerSeconds) * 100)) + '%';
+    if (remaining <= 0) {
+      clearInterval(restTimerInterval);
+      restTimerInterval = null;
+      restTimerEndAt = null;
+      try { if (navigator.vibrate) navigator.vibrate([200,100,200]); } catch (e) {}
+      showToast('Rest complete');
+      render();
+    }
+  }
+
+  function cancelRestTimer() {
+    clearInterval(restTimerInterval);
+    restTimerInterval = null;
+    restTimerEndAt = null;
+  }
+
+  function render() {
+    openSwipes.clear();
+    root.innerHTML = '';
+    root.appendChild(buildHeader());
+    if (view === 'home') root.appendChild(buildHome());
+    else if (view === 'session') root.appendChild(buildSession());
+    else if (view === 'manage') root.appendChild(buildManage());
+    else if (view === 'history') root.appendChild(buildHistory());
+    else if (view === 'trends') root.appendChild(buildTrendsPage());
+    else if (view === 'calendar') root.appendChild(buildCalendarPage());
+  }
+
+  function buildHeader() {
+    const h = document.createElement('div');
+    h.className = 'wt-header';
+    h.innerHTML = `<div class="wt-title"><span class="wt-plate"></span>Little Logger</div>`;
+    return h;
+  }
+
+  function buildHome() {
+    const wrap = document.createElement('div');
+    const keys = Object.keys(data.templates);
+
+    if (keys.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'wt-empty';
+      empty.textContent = 'No templates yet. Tap "Edit Templates" below to create one.';
+      wrap.appendChild(empty);
+    }
+
+    keys.forEach(key => {
+      const tpl = data.templates[key];
+      const color = getTemplateColor(tpl);
+      const btn = document.createElement('button');
+      btn.className = 'wt-home-btn';
+      btn.style.borderColor = color;
+      btn.innerHTML = `<div class="wt-home-btn-title" style="color:${color}">Start ${escapeHtml(tpl.name)}</div>
+        <div class="wt-home-btn-sub">${tpl.exerciseIds.length} exercise${tpl.exerciseIds.length === 1 ? '' : 's'}</div>`;
+      btn.onclick = () => startSession(key);
+      wrap.appendChild(btn);
+    });
+
+    const navWrap = document.createElement('div');
+    navWrap.style.marginTop = '16px';
+    navWrap.style.display = 'flex';
+    navWrap.style.flexDirection = 'column';
+    navWrap.style.gap = '8px';
+    const histBtn = document.createElement('button');
+    histBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+    histBtn.textContent = 'History';
+    histBtn.onclick = () => { view = 'history'; historyExpanded = null; render(); };
+    const trendsBtn = document.createElement('button');
+    trendsBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+    trendsBtn.textContent = 'Trends';
+    trendsBtn.onclick = () => { view = 'trends'; render(); };
+    const calBtn = document.createElement('button');
+    calBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+    calBtn.textContent = 'Calendar';
+    calBtn.onclick = () => { view = 'calendar'; render(); };
+    const manageBtn = document.createElement('button');
+    manageBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+    manageBtn.textContent = 'Edit Templates';
+    manageBtn.onclick = () => { view = 'manage'; render(); };
+    navWrap.appendChild(histBtn);
+    navWrap.appendChild(trendsBtn);
+    navWrap.appendChild(calBtn);
+    navWrap.appendChild(manageBtn);
+    wrap.appendChild(navWrap);
+
+    if (data.sessions.length > 0) {
+      const last = data.sessions[data.sessions.length - 1];
+      const note = document.createElement('div');
+      note.className = 'wt-sub';
+      note.style.marginTop = '14px';
+      note.textContent = 'Last session: ' + escapeHtml(last.templateName) + ' on ' + new Date(last.timestamp).toLocaleDateString();
+      wrap.appendChild(note);
+    }
+
+    return wrap;
+  }
+
+  function buildSession() {
+    const wrap = document.createElement('div');
+    const draft = data.draft;
+    const tplColor = getTemplateColor(data.templates[draft.templateKey]);
+
+    const sh = document.createElement('div');
+    sh.className = 'wt-session-header';
+    sh.innerHTML = `<div>
+        <div class="wt-session-title" style="color:${tplColor}">${escapeHtml(draft.templateName)}</div>
+        <div class="wt-session-time">Started ${new Date(draft.startedAt).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</div>
+      </div>`;
+    const discardBtn = document.createElement('button');
+    discardBtn.className = 'wt-btn wt-btn-danger wt-btn-sm';
+    discardBtn.textContent = 'Discard';
+    discardBtn.onclick = () => discardSession(discardBtn);
+    sh.appendChild(discardBtn);
+    wrap.appendChild(sh);
+
+    draft.exercises.forEach((ex, exIdx) => {
+      wrap.appendChild(buildSessionExerciseCard(ex, exIdx));
+    });
+
+    if (pickerOpenFor === 'session') {
+      wrap.appendChild(buildExercisePicker({
+        excludeIds: new Set(data.draft.exercises.map(e => e.exerciseId)),
+        emptyText: 'All library exercises are already in this session.',
+        createLabel: 'Add to Session',
+        onAdd: (id) => addExerciseToSession(id),
+        onCreateNew: (fields) => createExerciseAndAdd(fields),
+        onCancel: () => { pickerOpenFor = null; render(); }
+      }));
+    } else {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'wt-add-ex-btn';
+      addBtn.textContent = '+ Add Exercise to This Session';
+      addBtn.onclick = () => { pickerOpenFor = 'session'; render(); };
+      wrap.appendChild(addBtn);
+    }
+
+    getTemplateWidgets(data.templates[draft.templateKey]).forEach(key => {
+      const def = WIDGET_DEFS[key];
+      if (def) wrap.appendChild(def.build());
+    });
+    wrap.appendChild(buildSessionNotes());
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'wt-btn wt-btn-primary wt-btn-full';
+    saveBtn.style.marginTop = '8px';
+    saveBtn.style.padding = '14px';
+    saveBtn.style.fontSize = '14px';
+    saveBtn.style.background = tplColor;
+    saveBtn.textContent = 'Save Session';
+    saveBtn.onclick = saveSession;
+    wrap.appendChild(saveBtn);
+
+    return wrap;
+  }
+
+  function buildRestTimer() {
+    const wrap = document.createElement('div');
+    wrap.className = 'wt-card';
+    const title = document.createElement('div');
+    title.className = 'wt-manage-section-title';
+    title.textContent = 'Rest Timer';
+    wrap.appendChild(title);
+
+    if (restTimerEndAt) {
+      const display = document.createElement('div');
+      display.className = 'wt-timer-display';
+      const remaining = Math.max(0, Math.round((restTimerEndAt - Date.now()) / 1000));
+      display.innerHTML = `<div id="wt-rest-remaining" class="wt-timer-remaining">${formatSeconds(remaining)}</div>
+        <div class="wt-timer-track"><div id="wt-rest-bar" class="wt-timer-bar" style="width:${Math.max(0,Math.min(100,(remaining/restTimerSeconds)*100))}%;"></div></div>`;
+      wrap.appendChild(display);
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+      cancelBtn.textContent = 'Cancel Timer';
+      cancelBtn.onclick = () => { cancelRestTimer(); render(); };
+      wrap.appendChild(cancelBtn);
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'wt-timer-grid';
+      [30, 60, 90, 180].forEach(sec => {
+        const b = document.createElement('button');
+        b.className = 'wt-btn wt-btn-ghost';
+        b.textContent = sec < 60 ? sec + 's' : (sec / 60) + ':00';
+        b.onclick = () => startRestTimer(sec);
+        grid.appendChild(b);
+      });
+      wrap.appendChild(grid);
+    }
+    return wrap;
+  }
+
+  const PLATE_SIZES = [45, 35, 25, 10, 5, 2.5];
+
+  function computePlateTotal(barWeight) {
+    let total = barWeight;
+    PLATE_SIZES.forEach(p => { total += plateCounts[p] * 2 * p; });
+    return total;
+  }
+
+  function buildPlateCalcWidget() {
+    const wrap = document.createElement('div');
+    wrap.className = 'wt-card';
+    const title = document.createElement('div');
+    title.className = 'wt-manage-section-title';
+    title.textContent = 'Plate Calculator';
+    wrap.appendChild(title);
+
+    const barRow = document.createElement('div');
+    barRow.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;';
+    const barLabel = document.createElement('label');
+    barLabel.style.cssText = 'font-size:11px;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:0.3px;';
+    barLabel.textContent = 'Bar (lbs)';
+    const barInput = document.createElement('input');
+    barInput.type = 'number';
+    barInput.inputMode = 'decimal';
+    barInput.value = plateCalcBar;
+    barInput.style.cssText = 'width:70px;background:var(--iron-900);border:1px solid var(--iron-600);color:var(--chalk);border-radius:6px;padding:8px 10px;font-size:14px;text-align:center;';
+    barRow.appendChild(barLabel);
+    barRow.appendChild(barInput);
+    wrap.appendChild(barRow);
+
+    const totalDisplay = document.createElement('div');
+    totalDisplay.style.cssText = 'text-align:center;font-size:26px;font-weight:800;color:var(--accent);margin-bottom:4px;font-variant-numeric:tabular-nums;';
+    wrap.appendChild(totalDisplay);
+    const totalLabel = document.createElement('div');
+    totalLabel.style.cssText = 'text-align:center;font-size:10px;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:16px;';
+    totalLabel.textContent = 'Total (bar + plates, both sides)';
+    wrap.appendChild(totalLabel);
+
+    const list = document.createElement('div');
+    list.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+
+    function updateTotal() {
+      const bar = parseFloat(barInput.value) || 0;
+      plateCalcBar = barInput.value;
+      totalDisplay.textContent = computePlateTotal(bar) + ' lb';
+    }
+
+    PLATE_SIZES.forEach(p => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; justify-content:space-between;';
+      const label = document.createElement('div');
+      label.style.cssText = 'font-size:14px; font-weight:700;';
+      label.textContent = p + ' lb';
+      const counterWrap = document.createElement('div');
+      counterWrap.style.cssText = 'display:flex; align-items:center; gap:12px;';
+      const minusBtn = document.createElement('button');
+      minusBtn.className = 'wt-btn wt-btn-ghost';
+      minusBtn.style.cssText = 'width:36px; padding:8px 0;';
+      minusBtn.textContent = '−';
+      const countEl = document.createElement('div');
+      countEl.style.cssText = 'min-width:20px; text-align:center; font-size:15px; font-weight:800; font-variant-numeric:tabular-nums;';
+      countEl.textContent = plateCounts[p];
+      const plusBtn = document.createElement('button');
+      plusBtn.className = 'wt-btn wt-btn-ghost';
+      plusBtn.style.cssText = 'width:36px; padding:8px 0;';
+      plusBtn.textContent = '+';
+      minusBtn.onclick = () => {
+        plateCounts[p] = Math.max(0, plateCounts[p] - 1);
+        countEl.textContent = plateCounts[p];
+        updateTotal();
+      };
+      plusBtn.onclick = () => {
+        plateCounts[p] = plateCounts[p] + 1;
+        countEl.textContent = plateCounts[p];
+        updateTotal();
+      };
+      counterWrap.appendChild(minusBtn);
+      counterWrap.appendChild(countEl);
+      counterWrap.appendChild(plusBtn);
+      row.appendChild(label);
+      row.appendChild(counterWrap);
+      list.appendChild(row);
+    });
+    wrap.appendChild(list);
+
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+    resetBtn.style.marginTop = '14px';
+    resetBtn.textContent = 'Reset';
+    resetBtn.onclick = () => { PLATE_SIZES.forEach(p => { plateCounts[p] = 0; }); render(); };
+    wrap.appendChild(resetBtn);
+
+    barInput.addEventListener('input', updateTotal);
+    updateTotal();
+
+    return wrap;
+  }
+
+  function stopwatchIsRunning() { return stopwatchStartedAt !== null; }
+  function stopwatchCurrentMs() {
+    return stopwatchElapsedMs + (stopwatchStartedAt ? Date.now() - stopwatchStartedAt : 0);
+  }
+  function formatStopwatch(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const m = Math.floor(totalSec / 60), s = totalSec % 60;
+    const tenths = Math.floor((ms % 1000) / 100);
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '.' + tenths;
+  }
+  function startStopwatch() {
+    stopwatchStartedAt = Date.now();
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = setInterval(tickStopwatch, 100);
+    render();
+  }
+  function pauseStopwatch() {
+    stopwatchElapsedMs = stopwatchCurrentMs();
+    stopwatchStartedAt = null;
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = null;
+    render();
+  }
+  function resetStopwatch() {
+    stopwatchElapsedMs = 0;
+    stopwatchStartedAt = null;
+    clearInterval(stopwatchInterval);
+    stopwatchInterval = null;
+    render();
+  }
+  function tickStopwatch() {
+    const el = document.getElementById('wt-stopwatch-display');
+    if (el) el.textContent = formatStopwatch(stopwatchCurrentMs());
+  }
+
+  function buildStopwatchWidget() {
+    const wrap = document.createElement('div');
+    wrap.className = 'wt-card';
+    const title = document.createElement('div');
+    title.className = 'wt-manage-section-title';
+    title.textContent = 'Stopwatch';
+    wrap.appendChild(title);
+
+    const display = document.createElement('div');
+    display.id = 'wt-stopwatch-display';
+    display.className = 'wt-timer-remaining';
+    display.style.textAlign = 'center';
+    display.textContent = formatStopwatch(stopwatchCurrentMs());
+    wrap.appendChild(display);
+
+    const row = document.createElement('div');
+    row.className = 'wt-timer-grid';
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'wt-btn wt-btn-primary';
+    toggleBtn.textContent = stopwatchIsRunning() ? 'Pause' : 'Start';
+    toggleBtn.onclick = () => stopwatchIsRunning() ? pauseStopwatch() : startStopwatch();
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'wt-btn wt-btn-ghost';
+    resetBtn.textContent = 'Reset';
+    resetBtn.onclick = resetStopwatch;
+    row.appendChild(toggleBtn);
+    row.appendChild(resetBtn);
+    wrap.appendChild(row);
+
+    return wrap;
+  }
+
+  function buildSessionNotes() {
+    const wrap = document.createElement('div');
+    wrap.className = 'wt-card';
+    const title = document.createElement('div');
+    title.className = 'wt-manage-section-title';
+    title.textContent = 'Session Notes';
+    wrap.appendChild(title);
+    const textarea = document.createElement('textarea');
+    textarea.value = data.draft.notes || '';
+    textarea.placeholder = 'How did it feel? Anything to remember...';
+    textarea.style.cssText = 'width:100%;min-height:60px;background:var(--iron-900);border:1px solid var(--iron-600);color:var(--chalk);border-radius:6px;padding:10px;font-size:14px;font-family:inherit;resize:vertical;';
+    textarea.addEventListener('input', e => { data.draft.notes = e.target.value; scheduleSave(); });
+    wrap.appendChild(textarea);
+    return wrap;
+  }
+
+  function buildSessionExerciseCard(ex, exIdx) {
+    const type = ex.type || 'weight';
+    const lib = getLibraryEx(ex.exerciseId);
+    const lastDisplay = findLastLoggedDisplay(ex.exerciseId);
+    const lastEx = getLastLoggedExercise(ex.exerciseId);
+
+    const card = document.createElement('div');
+    card.className = 'wt-card wt-swipe-content';
+
+    const head = document.createElement('div');
+    head.className = 'wt-ex-head';
+    head.innerHTML = `<div>
+        <div class="wt-ex-name">${escapeHtml(ex.name)}</div>
+        <div class="wt-ex-meta">${lib ? escapeHtml(lib.repRange) : ''}</div>
+      </div>`;
+    const rightWrap = document.createElement('div');
+    rightWrap.style.display = 'flex';
+    rightWrap.style.alignItems = 'center';
+    rightWrap.style.gap = '6px';
+    if (lastDisplay) {
+      const lastEl = document.createElement('div');
+      lastEl.className = 'wt-last';
+      lastEl.textContent = 'last: ' + lastDisplay;
+      rightWrap.appendChild(lastEl);
+    }
+    head.appendChild(rightWrap);
+    card.appendChild(head);
+
+    if (type === 'checkbox') {
+      const checked = ex.sets[0] && ex.sets[0].checked;
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'wt-btn wt-btn-full ' + (checked ? 'wt-btn-primary' : 'wt-btn-ghost');
+      toggleBtn.style.padding = '14px';
+      toggleBtn.style.fontSize = '14px';
+      toggleBtn.textContent = checked ? '\u2713 Done' : 'Mark as Done';
+      toggleBtn.onclick = () => { ex.sets[0].checked = !ex.sets[0].checked; scheduleSave(); render(); };
+      card.appendChild(toggleBtn);
+    } else {
+      const setsWrap = document.createElement('div');
+      setsWrap.className = 'wt-sets';
+      ex.sets.forEach((s, i) => {
+        const swipeWrap = document.createElement('div');
+        swipeWrap.className = 'wt-swipe-wrap wt-set-row-swipe';
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'wt-swipe-delete';
+        delBtn.textContent = 'Delete';
+
+        const row = document.createElement('div');
+        row.className = 'wt-set-row wt-swipe-content';
+
+        if (type === 'timed') {
+          row.style.gridTemplateColumns = '24px auto 1fr';
+          row.innerHTML = `<div class="wt-set-num">${i+1}</div>
+            <div class="wt-drag-handle"><span></span><span></span></div>
+            <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${s.seconds || ''}" data-role="seconds" /><span class="wt-unit">sec</span></div>`;
+          row.querySelector('[data-role="seconds"]').addEventListener('input', (e) => { ex.sets[i].seconds = e.target.value; scheduleSave(); });
+          attachNumberSwipe(row.querySelector('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].seconds = v; scheduleSave(); } });
+        } else if (type === 'bodyweight') {
+          row.style.gridTemplateColumns = '24px auto 1fr';
+          row.innerHTML = `<div class="wt-set-num">${i+1}</div>
+            <div class="wt-drag-handle"><span></span><span></span></div>
+            <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${s.reps || ''}" data-role="reps" /><span class="wt-unit">reps</span></div>`;
+          row.querySelector('[data-role="reps"]').addEventListener('input', (e) => { ex.sets[i].reps = e.target.value; scheduleSave(); });
+          attachNumberSwipe(row.querySelector('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].reps = v; scheduleSave(); } });
+        } else {
+          row.style.gridTemplateColumns = '24px auto 1fr 1fr';
+          row.innerHTML = `<div class="wt-set-num">${i+1}</div>
+            <div class="wt-drag-handle"><span></span><span></span></div>
+            <div class="wt-field"><input type="number" inputmode="decimal" placeholder="0" value="${s.weight || ''}" data-role="weight" /><span class="wt-unit">lbs</span></div>
+            <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${s.reps || ''}" data-role="reps" /><span class="wt-unit">reps</span></div>`;
+          row.querySelector('[data-role="weight"]').addEventListener('input', (e) => { ex.sets[i].weight = e.target.value; scheduleSave(); });
+          row.querySelector('[data-role="reps"]').addEventListener('input', (e) => { ex.sets[i].reps = e.target.value; scheduleSave(); });
+          const fields = row.querySelectorAll('.wt-field');
+          attachNumberSwipe(fields[0], { step: 2.5, onChange: (v) => { ex.sets[i].weight = v; scheduleSave(); } });
+          attachNumberSwipe(fields[1], { step: 1, onChange: (v) => { ex.sets[i].reps = v; scheduleSave(); } });
+        }
+
+        attachSwipe(row, { handleSelector: '.wt-drag-handle', wrapEl: swipeWrap });
+        delBtn.onclick = () => { ex.sets.splice(i, 1); scheduleSave(); render(); };
+
+        swipeWrap.appendChild(delBtn);
+        swipeWrap.appendChild(row);
+        setsWrap.appendChild(swipeWrap);
+      });
+      card.appendChild(setsWrap);
+
+      const addSetBtn = document.createElement('button');
+      addSetBtn.className = 'wt-addset-btn';
+      addSetBtn.textContent = '+ Add Set';
+      addSetBtn.onclick = () => { ex.sets.push({ weight: '', reps: '', seconds: '', checked: false }); scheduleSave(); render(); };
+      card.appendChild(addSetBtn);
+    }
+
+    const outerSwipe = document.createElement('div');
+    outerSwipe.className = 'wt-swipe-wrap';
+    const actions = document.createElement('div');
+    actions.className = 'wt-swipe-actions';
+    const fillBtn = document.createElement('button');
+    fillBtn.className = 'wt-swipe-fill';
+    fillBtn.textContent = 'Same as Last';
+    if (!lastEx) fillBtn.disabled = true;
+    fillBtn.onclick = () => {
+      if (!lastEx) { showToast('No previous data for this exercise'); return; }
+      ex.sets = lastEx.sets.map(s => ({ weight: s.weight, reps: s.reps, seconds: s.seconds, checked: s.checked }));
+      scheduleSave();
+      render();
+    };
+    const cardDeleteBtn = document.createElement('button');
+    cardDeleteBtn.className = 'wt-swipe-card-delete';
+    cardDeleteBtn.textContent = 'Delete';
+    cardDeleteBtn.onclick = () => removeExerciseFromSession(exIdx);
+    actions.appendChild(fillBtn);
+    actions.appendChild(cardDeleteBtn);
+    attachSwipe(card, { reverse: true, fraction: 0.5, excludeSelector: '.wt-set-row-swipe', openThreshold: 0.35, wrapEl: outerSwipe });
+    outerSwipe.appendChild(actions);
+    outerSwipe.appendChild(card);
+
+    return outerSwipe;
+  }
+
+  function buildExerciseSwipeRow(ex, opts) {
+    if (editingExercise === ex.id) {
+      return buildNewExerciseForm(
+        (fields) => updateLibraryExercise(ex.id, fields),
+        () => { editingExercise = null; render(); },
+        { initial: ex, saveLabel: 'Save Changes' }
+      );
+    }
+
+    const swipeWrap = document.createElement('div');
+    swipeWrap.className = 'wt-swipe-wrap';
+
+    const actions = document.createElement('div');
+    actions.className = 'wt-ex-row-actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'wt-ex-row-edit';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => { editingExercise = ex.id; render(); };
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'wt-ex-row-delete';
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.onclick = opts.onDelete;
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+
+    const row = document.createElement('div');
+    row.className = 'wt-card wt-swipe-content wt-ex-row';
+    row.innerHTML = `<div><div class="wt-ex-name">${escapeHtml(ex.name)}</div><div class="wt-ex-meta">${ex.sets} sets &middot; ${escapeHtml(ex.repRange)}</div></div>`;
+    if (opts.trailing) row.appendChild(opts.trailing);
+
+    attachSwipe(row, { distance: 120, wrapEl: swipeWrap });
+    swipeWrap.appendChild(actions);
+    swipeWrap.appendChild(row);
+    return swipeWrap;
+  }
+
+  function buildExercisePicker(opts) {
+    const wrap = document.createElement('div');
+    wrap.className = 'wt-card';
+    const title = document.createElement('div');
+    title.className = 'wt-manage-section-title';
+    title.textContent = 'Choose an exercise';
+    wrap.appendChild(title);
+
+    if (creatingNew) {
+      wrap.appendChild(buildNewExerciseForm((fields) => opts.onCreateNew(fields), () => { creatingNew = false; render(); }, { saveLabel: opts.createLabel }));
+      return wrap;
+    }
+
+    const available = data.library.filter(e => !opts.excludeIds.has(e.id));
+    if (available.length === 0) {
+      const p = document.createElement('div');
+      p.className = 'wt-sub';
+      p.textContent = opts.emptyText;
+      wrap.appendChild(p);
+    } else {
+      available.forEach(ex => {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'wt-btn wt-btn-primary wt-btn-sm';
+        addBtn.textContent = 'Add';
+        addBtn.onclick = () => opts.onAdd(ex.id);
+        wrap.appendChild(buildExerciseSwipeRow(ex, {
+          trailing: addBtn,
+          onDelete: () => deleteLibraryExercise(ex.id)
+        }));
+      });
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'wt-actions-row';
+    const newBtn = document.createElement('button');
+    newBtn.className = 'wt-btn wt-btn-ghost';
+    newBtn.textContent = '+ New Exercise';
+    newBtn.onclick = () => { creatingNew = true; render(); };
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'wt-btn wt-btn-ghost';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = opts.onCancel;
+    actions.appendChild(newBtn);
+    actions.appendChild(cancelBtn);
+    wrap.appendChild(actions);
+
+    return wrap;
+  }
+
+  function buildNewExerciseForm(onSave, onCancel, opts) {
+    opts = opts || {};
+    const initial = opts.initial || { name: '', type: 'weight', sets: 3, repRange: '8-12' };
+    const form = document.createElement('div');
+    form.className = 'wt-add-form';
+    form.innerHTML = `
+      <label>Exercise name</label>
+      <input type="text" id="nf-name" placeholder="e.g. Bulgarian Split Squat" value="${escapeHtml(initial.name)}" />
+      <label>Type</label>
+      <select id="nf-type">
+        <option value="weight">Weighted (weight + reps)</option>
+        <option value="bodyweight">Bodyweight (reps only)</option>
+        <option value="timed">Timed (duration only)</option>
+        <option value="checkbox">Checkmark (done / not done)</option>
+      </select>
+      <div class="wt-form-row" id="nf-details-row">
+        <div><label>Sets</label><input type="number" id="nf-sets" value="${initial.sets}" /></div>
+        <div><label>Target range</label><input type="text" id="nf-reps" value="${escapeHtml(initial.repRange)}" /></div>
+      </div>
+    `;
+    const detailsRow = form.querySelector('#nf-details-row');
+    const typeSelect = form.querySelector('#nf-type');
+    typeSelect.value = initial.type || 'weight';
+    detailsRow.style.display = typeSelect.value === 'checkbox' ? 'none' : 'flex';
+    typeSelect.addEventListener('change', () => {
+      detailsRow.style.display = typeSelect.value === 'checkbox' ? 'none' : 'flex';
+    });
+    const row = document.createElement('div');
+    row.className = 'wt-actions-row';
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'wt-btn wt-btn-primary';
+    saveBtn.textContent = opts.saveLabel || 'Add';
+    saveBtn.onclick = () => {
+      const name = form.querySelector('#nf-name').value.trim();
+      if (!name) return;
+      const type = typeSelect.value;
+      onSave({
+        name,
+        type,
+        sets: type === 'checkbox' ? 1 : (parseInt(form.querySelector('#nf-sets').value) || 3),
+        repRange: type === 'checkbox' ? '' : (form.querySelector('#nf-reps').value.trim() || '8-12')
+      });
+    };
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'wt-btn wt-btn-ghost';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.onclick = onCancel;
+    row.appendChild(saveBtn);
+    row.appendChild(cancelBtn);
+    form.appendChild(row);
+    return form;
+  }
+
+  function buildManage() {
+    const wrap = document.createElement('div');
+    const back = document.createElement('button');
+    back.className = 'wt-back-btn';
+    back.textContent = '\u2190 Back';
+    back.onclick = () => { view = 'home'; render(); };
+    wrap.appendChild(back);
+
+    const keys = Object.keys(data.templates);
+    if (!keys.includes(manageTab)) manageTab = keys[0] || null;
+
+    const tabs = document.createElement('div');
+    tabs.style.display = 'flex';
+    tabs.style.flexWrap = 'wrap';
+    tabs.style.gap = '6px';
+    tabs.style.marginBottom = '14px';
+    keys.forEach(key => {
+      const b = document.createElement('button');
+      b.className = 'wt-btn wt-btn-sm ' + (manageTab === key ? 'wt-btn-primary' : 'wt-btn-ghost');
+      b.textContent = data.templates[key].name;
+      b.onclick = () => { manageTab = key; pickerOpenFor = null; creatingNew = false; renamingTemplate = null; widgetPickerOpen = false; editingExercise = null; render(); };
+      tabs.appendChild(b);
+    });
+    const newTplBtn = document.createElement('button');
+    newTplBtn.className = 'wt-btn wt-btn-sm wt-btn-ghost';
+    newTplBtn.textContent = '+ New';
+    newTplBtn.onclick = () => { creatingTemplate = true; renamingTemplate = null; widgetPickerOpen = false; editingExercise = null; render(); };
+    tabs.appendChild(newTplBtn);
+    wrap.appendChild(tabs);
+
+    if (creatingTemplate) {
+      const form = document.createElement('div');
+      form.className = 'wt-add-form';
+      form.innerHTML = `<label>Template name</label><input type="text" id="tf-name" placeholder="e.g. Leg Day" />`;
+      const row = document.createElement('div');
+      row.className = 'wt-actions-row';
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'wt-btn wt-btn-primary';
+      saveBtn.textContent = 'Create';
+      saveBtn.onclick = () => {
+        const name = form.querySelector('#tf-name').value.trim();
+        if (!name) return;
+        const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') + '-' + Date.now().toString(36);
+        data.templates[id] = { name, exerciseIds: [] };
+        manageTab = id;
+        creatingTemplate = false;
+        scheduleSave();
+        render();
+      };
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'wt-btn wt-btn-ghost';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = () => { creatingTemplate = false; render(); };
+      row.appendChild(saveBtn);
+      row.appendChild(cancelBtn);
+      form.appendChild(row);
+      wrap.appendChild(form);
+      return wrap;
+    }
+
+    if (!manageTab) {
+      const empty = document.createElement('div');
+      empty.className = 'wt-empty';
+      empty.textContent = 'No templates yet. Tap "+ New" to create one.';
+      wrap.appendChild(empty);
+      return wrap;
+    }
+
+    const tpl = data.templates[manageTab];
+
+    const headerRow = document.createElement('div');
+    headerRow.style.display = 'flex';
+    headerRow.style.justifyContent = 'space-between';
+    headerRow.style.alignItems = 'center';
+    headerRow.style.marginBottom = '10px';
+
+    if (renamingTemplate === manageTab) {
+      const renameForm = document.createElement('div');
+      renameForm.style.display = 'flex';
+      renameForm.style.gap = '6px';
+      renameForm.style.width = '100%';
+      renameForm.innerHTML = `<input type="text" id="rn-name" value="${escapeHtml(tpl.name)}" style="flex:1; background: var(--iron-900); border: 1px solid var(--iron-600); color: var(--chalk); border-radius: 6px; padding: 8px 10px; font-size: 14px;" />`;
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'wt-btn wt-btn-primary wt-btn-sm';
+      saveBtn.textContent = 'Save';
+      saveBtn.onclick = () => {
+        const newName = renameForm.querySelector('#rn-name').value.trim();
+        if (newName) tpl.name = newName;
+        renamingTemplate = null;
+        scheduleSave();
+        render();
+      };
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'wt-btn wt-btn-ghost wt-btn-sm';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = () => { renamingTemplate = null; render(); };
+      renameForm.appendChild(saveBtn);
+      renameForm.appendChild(cancelBtn);
+      headerRow.appendChild(renameForm);
+    } else {
+      const title = document.createElement('div');
+      title.className = 'wt-manage-section-title';
+      title.style.marginBottom = '0';
+      title.textContent = tpl.name;
+      const btnGroup = document.createElement('div');
+      btnGroup.style.display = 'flex';
+      btnGroup.style.gap = '6px';
+      const renameBtn = document.createElement('button');
+      renameBtn.className = 'wt-btn wt-btn-ghost wt-btn-sm';
+      renameBtn.textContent = 'Rename';
+      renameBtn.onclick = () => { renamingTemplate = manageTab; templateDeleteArmed = false; render(); };
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'wt-btn wt-btn-danger wt-btn-sm';
+      deleteBtn.textContent = templateDeleteArmed ? 'Confirm?' : 'Delete';
+      deleteBtn.onclick = () => {
+        if (!templateDeleteArmed) {
+          templateDeleteArmed = true;
+          render();
+          setTimeout(() => { templateDeleteArmed = false; render(); }, 2500);
+          return;
+        }
+        delete data.templates[manageTab];
+        manageTab = Object.keys(data.templates)[0] || null;
+        templateDeleteArmed = false;
+        scheduleSave();
+        render();
+      };
+      btnGroup.appendChild(renameBtn);
+      if (DEFAULT_DATA.templates[manageTab]) {
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'wt-btn wt-btn-ghost wt-btn-sm';
+        resetBtn.textContent = 'Reset to Default';
+        resetBtn.onclick = () => {
+          tpl.exerciseIds = [...DEFAULT_DATA.templates[manageTab].exerciseIds];
+          tpl.name = DEFAULT_DATA.templates[manageTab].name;
+          scheduleSave();
+          render();
+        };
+        btnGroup.appendChild(resetBtn);
+      }
+      btnGroup.appendChild(deleteBtn);
+      headerRow.appendChild(title);
+      headerRow.appendChild(btnGroup);
+    }
+    wrap.appendChild(headerRow);
+
+    const swatchRow = document.createElement('div');
+    swatchRow.className = 'wt-swatch-row';
+    const currentColor = getTemplateColor(tpl);
+    TEMPLATE_COLORS.forEach(color => {
+      const sw = document.createElement('button');
+      sw.className = 'wt-swatch' + (currentColor === color ? ' active' : '');
+      sw.style.background = color;
+      sw.title = color;
+      sw.onclick = () => { tpl.color = color; scheduleSave(); render(); };
+      swatchRow.appendChild(sw);
+    });
+    wrap.appendChild(swatchRow);
+
+    tpl.exerciseIds.forEach((id, idx) => {
+      const lib = getLibraryEx(id);
+      if (!lib) return;
+      wrap.appendChild(buildExerciseSwipeRow(lib, {
+        onDelete: () => { tpl.exerciseIds.splice(idx,1); scheduleSave(); render(); }
+      }));
+    });
+
+    if (pickerOpenFor === 'template') {
+      wrap.appendChild(buildExercisePicker({
+        excludeIds: new Set(tpl.exerciseIds),
+        emptyText: 'All library exercises are already in this template.',
+        createLabel: 'Add to Template',
+        onAdd: (id) => { tpl.exerciseIds.push(id); pickerOpenFor = null; scheduleSave(); render(); },
+        onCreateNew: (fields) => createExerciseAndAddToTemplate(tpl, fields),
+        onCancel: () => { pickerOpenFor = null; render(); }
+      }));
+    } else {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'wt-add-ex-btn';
+      addBtn.textContent = '+ Add Exercise to ' + escapeHtml(tpl.name);
+      addBtn.onclick = () => { pickerOpenFor = 'template'; render(); };
+      wrap.appendChild(addBtn);
+    }
+
+    const widgetTitle = document.createElement('div');
+    widgetTitle.className = 'wt-manage-section-title';
+    widgetTitle.style.marginTop = '18px';
+    widgetTitle.textContent = 'Widgets';
+    wrap.appendChild(widgetTitle);
+
+    const activeWidgets = getTemplateWidgets(tpl);
+    activeWidgets.forEach(key => {
+      const def = WIDGET_DEFS[key];
+      if (!def) return;
+      const row = document.createElement('div');
+      row.className = 'wt-card';
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.alignItems = 'center';
+      row.innerHTML = `<div class="wt-ex-name">${escapeHtml(def.label)}</div>`;
+      const rm = document.createElement('button');
+      rm.className = 'wt-btn wt-btn-danger wt-btn-sm';
+      rm.textContent = 'Remove';
+      rm.onclick = () => { tpl.widgets = activeWidgets.filter(w => w !== key); scheduleSave(); render(); };
+      row.appendChild(rm);
+      wrap.appendChild(row);
+    });
+
+    if (widgetPickerOpen) {
+      const panel = document.createElement('div');
+      panel.className = 'wt-card';
+      const notActive = Object.keys(WIDGET_DEFS).filter(k => !activeWidgets.includes(k));
+      if (notActive.length === 0) {
+        panel.innerHTML = '<div class="wt-sub">All widgets are already active for this template.</div>';
+      } else {
+        notActive.forEach(key => {
+          const def = WIDGET_DEFS[key];
+          const item = document.createElement('div');
+          item.className = 'wt-picker-item';
+          item.innerHTML = `<div class="wt-picker-name">${escapeHtml(def.label)}</div>`;
+          const addWBtn = document.createElement('button');
+          addWBtn.className = 'wt-btn wt-btn-primary wt-btn-sm';
+          addWBtn.textContent = 'Add';
+          addWBtn.onclick = () => { tpl.widgets = [...activeWidgets, key]; widgetPickerOpen = false; scheduleSave(); render(); };
+          item.appendChild(addWBtn);
+          panel.appendChild(item);
+        });
+      }
+      const cancelWBtn = document.createElement('button');
+      cancelWBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+      cancelWBtn.style.marginTop = '10px';
+      cancelWBtn.textContent = 'Cancel';
+      cancelWBtn.onclick = () => { widgetPickerOpen = false; render(); };
+      panel.appendChild(cancelWBtn);
+      wrap.appendChild(panel);
+    } else {
+      const addWidgetBtn = document.createElement('button');
+      addWidgetBtn.className = 'wt-add-ex-btn';
+      addWidgetBtn.textContent = '+ Add Widget';
+      addWidgetBtn.onclick = () => { widgetPickerOpen = true; render(); };
+      wrap.appendChild(addWidgetBtn);
+    }
+
+    return wrap;
+  }
+
+  function buildHistory() {
+    const wrap = document.createElement('div');
+    const back = document.createElement('button');
+    back.className = 'wt-back-btn';
+    back.textContent = '\u2190 Back';
+    back.onclick = () => { view = 'home'; render(); };
+    wrap.appendChild(back);
+
+    if (data.sessions.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'wt-empty';
+      e.textContent = 'No saved sessions yet.';
+      wrap.appendChild(e);
+      return wrap;
+    }
+
+    const sorted = [...data.sessions].sort((a,b) => b.timestamp - a.timestamp);
+    sorted.forEach(s => wrap.appendChild(buildHistoryRow(s)));
+
+    return wrap;
+  }
+
+  function buildHistoryRow(s) {
+    const swipeWrap = document.createElement('div');
+    swipeWrap.className = 'wt-swipe-wrap';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'wt-swipe-delete';
+    delBtn.textContent = 'Delete';
+    let deleteArmed = false;
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (!deleteArmed) {
+        deleteArmed = true;
+        delBtn.textContent = 'Confirm?';
+        setTimeout(() => { deleteArmed = false; if (delBtn.isConnected) delBtn.textContent = 'Delete'; }, 2500);
+        return;
+      }
+      data.sessions = data.sessions.filter(sess => sess.id !== s.id);
+      scheduleSave();
+      render();
+    };
+
+    const item = document.createElement('div');
+    item.className = 'wt-history-item wt-swipe-content';
+    const head = document.createElement('div');
+    head.className = 'wt-history-item-head';
+    head.innerHTML = `<div class="wt-history-item-title">${escapeHtml(s.templateName)}</div><div class="wt-history-item-date">${new Date(s.timestamp).toLocaleDateString()}</div>`;
+    item.appendChild(head);
+
+    const loggedExercises = s.exercises.filter(ex => ex.sets.some(x => setHasData(ex, x)));
+    if (historyExpanded === s.id) {
+      const detail = document.createElement('div');
+      detail.className = 'wt-history-detail';
+      loggedExercises.forEach(ex => {
+        const type = ex.type || 'weight';
+        let setsStr;
+        if (type === 'checkbox') setsStr = '\u2713 Completed';
+        else if (type === 'timed') setsStr = ex.sets.filter(x => x.seconds).map(x => formatSeconds(x.seconds)).join(', ');
+        else if (type === 'bodyweight') setsStr = ex.sets.filter(x => x.reps).map(x => x.reps + ' reps').join(', ');
+        else setsStr = ex.sets.filter(x => x.weight).map(x => x.weight + '\u00d7' + x.reps).join(', ');
+        const row = document.createElement('div');
+        row.className = 'wt-history-detail-row';
+        row.innerHTML = `<span>${escapeHtml(ex.name)}</span><span>${setsStr}</span>`;
+        detail.appendChild(row);
+      });
+      if (s.notes) {
+        const notesEl = document.createElement('div');
+        notesEl.className = 'wt-history-notes';
+        notesEl.textContent = s.notes;
+        detail.appendChild(notesEl);
+      }
+      const repeatBtn = document.createElement('button');
+      repeatBtn.className = 'wt-btn wt-btn-primary wt-btn-full';
+      repeatBtn.style.marginTop = '10px';
+      repeatBtn.textContent = 'Repeat This Session';
+      repeatBtn.onclick = (e) => { e.stopPropagation(); duplicateSessionAsDraft(s); };
+      detail.appendChild(repeatBtn);
+      item.appendChild(detail);
+    }
+
+    const swipeCtrl = attachSwipe(item, { wrapEl: swipeWrap });
+    item.addEventListener('click', () => {
+      if (swipeCtrl.isOpen()) { swipeCtrl.close(); return; }
+      historyExpanded = historyExpanded === s.id ? null : s.id;
+      render();
+    });
+
+    swipeWrap.appendChild(delBtn);
+    swipeWrap.appendChild(item);
+    return swipeWrap;
+  }
+
+  function computeE1RM(weight, reps) {
+    return weight * (1 + reps / 30);
+  }
+
+  function buildSimpleBarChart(points, valueFormatter) {
+    const chartWrap = document.createElement('div');
+    chartWrap.className = 'wt-chart-wrap';
+    const bars = document.createElement('div');
+    bars.className = 'wt-chart-bars';
+    const max = Math.max(...points.map(p => p.val), 1);
+    points.forEach(p => {
+      const col = document.createElement('div');
+      col.className = 'wt-chart-col';
+      const heightPx = Math.max(2, (p.val / max) * 100);
+      col.innerHTML = `<div class="wt-chart-val">${valueFormatter(p.val)}</div>
+        <div class="wt-chart-bar" style="height:${heightPx}px;"></div>
+        <div class="wt-chart-date">${new Date(p.date).toLocaleDateString(undefined,{month:'numeric',day:'numeric'})}</div>`;
+      bars.appendChild(col);
+    });
+    chartWrap.appendChild(bars);
+    return chartWrap;
+  }
+
+  function buildChartTitle(text) {
+    const title = document.createElement('div');
+    title.className = 'wt-manage-section-title';
+    title.style.marginTop = '20px';
+    title.textContent = text;
+    return title;
+  }
+
+  function buildDualAxisChart(points) {
+    const colW = 56;
+    const chartW = Math.max(points.length * colW, colW);
+    const chartH = 170;
+    const barMaxH = 100;
+    const topPad = 24;
+    const bottomPad = 24;
+    const maxWeight = Math.max(...points.map(p => p.weight), 1);
+    const maxReps = Math.max(...points.map(p => p.reps), 1);
+
+    let bars = '', lineCoords = [], circles = '', dateLabels = '', weightLabels = '', repLabels = '';
+    points.forEach((p, i) => {
+      const cx = i * colW + colW / 2;
+      const barH = (p.weight / maxWeight) * barMaxH;
+      const barY = chartH - bottomPad - barH;
+      bars += `<rect x="${cx - 12}" y="${barY}" width="24" height="${barH}" rx="3" fill="var(--accent)" />`;
+      weightLabels += `<text x="${cx}" y="${barY - 6}" font-size="10" fill="var(--accent)" text-anchor="middle">${p.weight}</text>`;
+
+      const repY = topPad + (1 - p.reps / maxReps) * (barMaxH - 10);
+      lineCoords.push(cx + ',' + repY);
+      circles += `<circle cx="${cx}" cy="${repY}" r="3.5" fill="var(--green)" />`;
+      repLabels += `<text x="${cx}" y="${repY - 8}" font-size="10" fill="var(--green)" text-anchor="middle">${p.reps}</text>`;
+
+      dateLabels += `<text x="${cx}" y="${chartH - 6}" font-size="9" fill="var(--chalk-dim)" text-anchor="middle">${new Date(p.date).toLocaleDateString(undefined,{month:'numeric',day:'numeric'})}</text>`;
+    });
+
+    const svg = `
+      <svg viewBox="0 0 ${chartW} ${chartH}" width="${chartW}" height="${chartH}" xmlns="http://www.w3.org/2000/svg">
+        ${bars}
+        <polyline points="${lineCoords.join(' ')}" fill="none" stroke="var(--green)" stroke-width="2" />
+        ${circles}
+        ${weightLabels}
+        ${repLabels}
+        ${dateLabels}
+      </svg>
+    `;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'wt-chart-wrap';
+    wrap.innerHTML = svg;
+
+    const legend = document.createElement('div');
+    legend.style.cssText = 'display:flex; gap:16px; margin-top:8px; font-size:11px; color:var(--chalk-dim);';
+    legend.innerHTML = `
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--accent);border-radius:2px;display:inline-block;"></span>Weight (lb)</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:var(--green);border-radius:50%;display:inline-block;"></span>Reps</span>
+    `;
+
+    const outer = document.createElement('div');
+    outer.appendChild(wrap);
+    outer.appendChild(legend);
+    return outer;
+  }
+
+  function buildTrendsPage() {
+    const wrap = document.createElement('div');
+    const back = document.createElement('button');
+    back.className = 'wt-back-btn';
+    back.textContent = '\u2190 Back';
+    back.onclick = () => { view = 'home'; render(); };
+    wrap.appendChild(back);
+
+    if (data.sessions.length === 0) {
+      const e = document.createElement('div');
+      e.className = 'wt-empty';
+      e.textContent = 'Log a few sessions to see trends here.';
+      wrap.appendChild(e);
+      return wrap;
+    }
+
+    const loggedExIds = new Set();
+    data.sessions.forEach(s => s.exercises.forEach(ex => { if (ex.sets.some(x => setHasData(ex, x))) loggedExIds.add(ex.exerciseId); }));
+    const options = data.library.filter(e => loggedExIds.has(e.id) && (e.type || 'weight') !== 'checkbox');
+
+    if (options.length === 0) {
+      wrap.innerHTML += '<div class="wt-empty">Log a few sessions to see trends here.</div>';
+      return wrap;
+    }
+
+    if (!trendsExerciseId || !loggedExIds.has(trendsExerciseId)) trendsExerciseId = options[0].id;
+
+    const select = document.createElement('select');
+    select.style.cssText = 'width:100%; background: var(--iron-800); border: 1px solid var(--iron-600); color: var(--chalk); border-radius: 6px; padding: 10px; font-size: 14px; margin: 14px 0;';
+    options.forEach(ex => {
+      const opt = document.createElement('option');
+      opt.value = ex.id;
+      opt.textContent = ex.name;
+      if (ex.id === trendsExerciseId) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.onchange = () => { trendsExerciseId = select.value; render(); };
+    wrap.appendChild(select);
+
+    const type = (getLibraryEx(trendsExerciseId) || {}).type || 'weight';
+
+    if (type !== 'weight') {
+      const points = [];
+      [...data.sessions].sort((a,b) => a.timestamp - b.timestamp).forEach(s => {
+        const ex = s.exercises.find(e => e.exerciseId === trendsExerciseId);
+        if (!ex || !ex.sets.some(x => setHasData(ex, x))) return;
+        const val = type === 'timed'
+          ? Math.max(...ex.sets.filter(x=>x.seconds).map(x=>+x.seconds))
+          : Math.max(...ex.sets.filter(x=>x.reps).map(x=>+x.reps));
+        points.push({ date: s.timestamp, val });
+      });
+      if (points.length === 0) {
+        wrap.innerHTML += '<div class="wt-empty">No data logged for this exercise yet.</div>';
+        return wrap;
+      }
+      const bestVal = Math.max(...points.map(p => p.val));
+      const lastVal = points[points.length - 1].val;
+      const statRow = document.createElement('div');
+      statRow.className = 'wt-stat-row';
+      statRow.innerHTML = `
+        <div><div class="wt-stat-val">${type==='timed' ? formatSeconds(lastVal) : lastVal}</div><div class="wt-stat-label">Last</div></div>
+        <div><div class="wt-stat-val">${type==='timed' ? formatSeconds(bestVal) : bestVal}</div><div class="wt-stat-label">Best</div></div>
+        <div><div class="wt-stat-val">${points.length}</div><div class="wt-stat-label">Sessions</div></div>
+      `;
+      wrap.appendChild(statRow);
+      wrap.appendChild(buildChartTitle(type === 'timed' ? 'Duration Per Session (sec)' : 'Reps Per Session'));
+      wrap.appendChild(buildSimpleBarChart(points.slice(-10), v => type === 'timed' ? formatSeconds(v) : v));
+      return wrap;
+    }
+
+    const sessionPoints = [];
+    [...data.sessions].sort((a,b) => a.timestamp - b.timestamp).forEach(s => {
+      const ex = s.exercises.find(e => e.exerciseId === trendsExerciseId);
+      if (!ex || !ex.sets.some(x => setHasData(ex, x))) return;
+      const validSets = ex.sets.filter(x => x.weight && x.reps);
+      if (validSets.length === 0) return;
+      const topSet = validSets.reduce((a,b) => (+b.weight > +a.weight ? b : a));
+      const e1rm = Math.max(...validSets.map(s2 => computeE1RM(+s2.weight, +s2.reps)));
+      const volume = validSets.reduce((sum, s2) => sum + (+s2.weight * +s2.reps), 0);
+      sessionPoints.push({ date: s.timestamp, weight: +topSet.weight, reps: +topSet.reps, e1rm: Math.round(e1rm), volume: Math.round(volume) });
+    });
+
+    if (sessionPoints.length === 0) {
+      wrap.innerHTML += '<div class="wt-empty">No data logged for this exercise yet.</div>';
+      return wrap;
+    }
+
+    const prWeight = Math.max(...sessionPoints.map(p => p.weight));
+    const prE1RM = Math.max(...sessionPoints.map(p => p.e1rm));
+    const prVolume = Math.max(...sessionPoints.map(p => p.volume));
+
+    const statRow = document.createElement('div');
+    statRow.className = 'wt-stat-row';
+    statRow.innerHTML = `
+      <div><div class="wt-stat-val">${prWeight} lb</div><div class="wt-stat-label">Max Weight PR</div></div>
+      <div><div class="wt-stat-val">${prE1RM} lb</div><div class="wt-stat-label">Best e1RM</div></div>
+      <div><div class="wt-stat-val">${prVolume} lb</div><div class="wt-stat-label">Total Volume PR</div></div>
+    `;
+    wrap.appendChild(statRow);
+
+    const recent = sessionPoints.slice(-8);
+    wrap.appendChild(buildChartTitle('Weight & Reps Per Session'));
+    wrap.appendChild(buildDualAxisChart(recent));
+
+    wrap.appendChild(buildChartTitle('Estimated 1-Rep Max (e1RM)'));
+    wrap.appendChild(buildSimpleBarChart(sessionPoints.slice(-10).map(p => ({ date: p.date, val: p.e1rm })), v => v + ' lb'));
+
+    wrap.appendChild(buildChartTitle('Total Volume Per Session'));
+    wrap.appendChild(buildSimpleBarChart(sessionPoints.slice(-10).map(p => ({ date: p.date, val: p.volume })), v => v));
+
+    const note = document.createElement('div');
+    note.className = 'wt-sub';
+    note.style.marginTop = '14px';
+    note.textContent = 'e1RM is an estimate (Epley formula) based on your heaviest set each session, not a measured max. "Total Volume PR" is your best single-session total (weight \u00d7 reps summed across sets), not a lifetime total.';
+    wrap.appendChild(note);
+
+    return wrap;
+  }
+
+  function buildCalendarPage() {
+    const wrap = document.createElement('div');
+    const back = document.createElement('button');
+    back.className = 'wt-back-btn';
+    back.textContent = '\u2190 Back';
+    back.onclick = () => { view = 'home'; render(); };
+    wrap.appendChild(back);
+
+    const base = new Date();
+    base.setDate(1);
+    base.setMonth(base.getMonth() + calendarMonthOffset);
+    const year = base.getFullYear(), month = base.getMonth();
+
+    const header = document.createElement('div');
+    header.className = 'wt-cal-header';
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'wt-cal-nav';
+    prevBtn.textContent = '\u2190';
+    prevBtn.onclick = () => { calendarMonthOffset -= 1; selectedCalendarDay = null; render(); };
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'wt-cal-nav';
+    nextBtn.textContent = '\u2192';
+    nextBtn.onclick = () => { calendarMonthOffset += 1; selectedCalendarDay = null; render(); };
+    const title = document.createElement('div');
+    title.className = 'wt-cal-title';
+    title.textContent = base.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    header.appendChild(prevBtn);
+    header.appendChild(title);
+    header.appendChild(nextBtn);
+    wrap.appendChild(header);
+
+    const sessionsByDay = {};
+    data.sessions.forEach(s => {
+      const d = new Date(s.timestamp);
+      const key = d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+      if (!sessionsByDay[key]) sessionsByDay[key] = [];
+      sessionsByDay[key].push(s);
+    });
+
+    const grid = document.createElement('div');
+    grid.className = 'wt-cal-grid';
+    ['S','M','T','W','T','F','S'].forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'wt-cal-dow';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let i = 0; i < firstDay; i++) {
+      const el = document.createElement('div');
+      el.className = 'wt-cal-day empty';
+      grid.appendChild(el);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const key = year + '-' + month + '-' + day;
+      const daySessions = sessionsByDay[key];
+      const hasSession = !!daySessions;
+      const el = document.createElement('div');
+      el.className = 'wt-cal-day' + (hasSession ? ' has-session' : '');
+      el.textContent = day;
+      if (hasSession) {
+        el.onclick = () => { selectedCalendarDay = key; render(); };
+        if (selectedCalendarDay === key) el.style.outline = '2px solid var(--accent)';
+        const colors = [];
+        daySessions.forEach(s => {
+          const color = getTemplateColor(data.templates[s.templateKey]);
+          if (!colors.includes(color)) colors.push(color);
+        });
+        const dotsWrap = document.createElement('div');
+        dotsWrap.className = 'wt-cal-dots';
+        colors.slice(0, 3).forEach(color => {
+          const dot = document.createElement('span');
+          dot.className = 'wt-cal-dot';
+          dot.style.background = color;
+          dotsWrap.appendChild(dot);
+        });
+        el.appendChild(dotsWrap);
+      }
+      grid.appendChild(el);
+    }
+    wrap.appendChild(grid);
+
+    if (selectedCalendarDay && sessionsByDay[selectedCalendarDay]) {
+      const listWrap = document.createElement('div');
+      listWrap.className = 'wt-cal-selected-list';
+      sessionsByDay[selectedCalendarDay].forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'wt-card';
+        row.innerHTML = `<div class="wt-ex-name">${escapeHtml(s.templateName)}</div><div class="wt-ex-meta">${new Date(s.timestamp).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</div>`;
+        listWrap.appendChild(row);
+      });
+      wrap.appendChild(listWrap);
+    }
+
+    return wrap;
+  }
+
+
+  loadData();
+})();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
