@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Little Logger">
 <style>
-  html, body { height: 100%; margin: 0; }
+  html, body { height: 100%; margin: 0; background: #17181c; }
   :root {
     --iron-900: #17181c;
     --iron-800: #202126;
@@ -31,7 +31,7 @@
     color: var(--chalk);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     min-height: 100%;
-    padding: 18px 14px 60px;
+    padding: calc(18px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
     max-width: 480px;
     margin: 0 auto;
   }
@@ -87,11 +87,11 @@
   .wt-history-detail-row { display: flex; justify-content: space-between; padding: 3px 0; }
   .wt-history-detail-row span:first-child { color: var(--chalk); }
   .wt-history-notes { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--iron-700); font-style: italic; color: var(--chalk-dim); font-size: 12px; }
-  .wt-back-btn { background: var(--iron-900); border: none; color: var(--chalk-dim); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 12px 14px 12px 4px; margin: -12px 0 0 -4px; border-radius: 6px; position: sticky; top: 0; z-index: 5; }
+  .wt-back-btn { background: var(--iron-900); border: none; color: var(--chalk-dim); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 12px 14px 12px 4px; margin: -12px 0 0 -4px; border-radius: 6px; position: sticky; top: env(safe-area-inset-top); z-index: 5; }
   .wt-back-btn:active { background: var(--iron-800); }
   .wt-empty { text-align: center; color: var(--chalk-dim); font-size: 13px; padding: 30px 10px; }
   .wt-manage-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--chalk-dim); font-weight: 700; margin-bottom: 8px; }
-  .wt-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: var(--iron-900); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 10; }
+  .wt-toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); background: var(--green); color: var(--iron-900); padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 10; }
   .wt-drag-handle { display: flex; flex-direction: row; gap: 4px; align-items: center; justify-content: center; padding: 0 8px; cursor: grab; touch-action: none; }
   .wt-drag-handle span { width: 2px; height: 16px; background: var(--chalk-dim); border-radius: 1px; display: block; }
   .wt-toast.show { opacity: 1; }
