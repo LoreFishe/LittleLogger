@@ -97,7 +97,7 @@
   .wt-toast.show { opacity: 1; }
   .wt-swipe-wrap { position: relative; overflow: hidden; border-radius: var(--radius); margin-bottom: 10px; width: 100%; }
   .wt-swipe-delete { position: absolute; top: 0; right: 0; bottom: 0; width: 70px; background: var(--danger); color: var(--iron-900); border: none; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; z-index: 0; }
-  .wt-swipe-actions { position: absolute; top: 0; left: 0; bottom: 0; width: 50%; z-index: 0; display: flex; flex-direction: column; }
+  .wt-swipe-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 50%; z-index: 0; display: flex; flex-direction: column; }
   .wt-swipe-fill { flex: 65; background: var(--accent); color: var(--iron-900); border: none; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2px; }
   .wt-swipe-fill:disabled { background: var(--iron-700); color: var(--chalk-dim); }
   .wt-swipe-card-delete { flex: 35; background: var(--danger); color: var(--iron-900); border: none; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -109,7 +109,7 @@
   .wt-set-row-swipe .wt-swipe-content { padding: 2px 0; }
   input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   input[type=number] { -moz-appearance: textfield; }
-  .wt-set-row-swipe .wt-swipe-delete { width: 60px; font-size: 11px; }
+  .wt-set-row-swipe .wt-swipe-delete { width: 60px; font-size: 11px; left: 0; right: auto; }
   .wt-discard-confirm { background: var(--danger) !important; color: var(--iron-900) !important; }
   .wt-timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .wt-timer-display { text-align: center; }
@@ -1009,12 +1009,27 @@
         row.className = 'wt-set-row wt-swipe-content';
 
         if (type === 'timed') {
-          row.style.gridTemplateColumns = '24px auto 1fr';
+          row.style.gridTemplateColumns = '24px auto 1fr 1fr';
+          const totalSec = s.seconds ? Math.max(0, Math.round(parseFloat(s.seconds) || 0)) : null;
+          const minVal = totalSec !== null ? Math.floor(totalSec / 60) : '';
+          const secVal = totalSec !== null ? totalSec % 60 : '';
           row.innerHTML = `<div class="wt-set-num">${i+1}</div>
             <div class="wt-drag-handle"><span></span><span></span></div>
-            <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${s.seconds || ''}" data-role="seconds" /><span class="wt-unit">sec</span></div>`;
-          row.querySelector('[data-role="seconds"]').addEventListener('input', (e) => { ex.sets[i].seconds = e.target.value; scheduleSave(); });
-          attachNumberSwipe(row.querySelector('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].seconds = v; scheduleSave(); } });
+            <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${minVal}" data-role="min" /><span class="wt-unit">min</span></div>
+            <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${secVal}" data-role="sec" /><span class="wt-unit">sec</span></div>`;
+          const minInput = row.querySelector('[data-role="min"]');
+          const secInput = row.querySelector('[data-role="sec"]');
+          const commitTime = () => {
+            const m = parseInt(minInput.value) || 0;
+            const sc = parseInt(secInput.value) || 0;
+            ex.sets[i].seconds = m * 60 + sc;
+            scheduleSave();
+          };
+          minInput.addEventListener('input', commitTime);
+          secInput.addEventListener('input', commitTime);
+          const timeFields = row.querySelectorAll('.wt-field');
+          attachNumberSwipe(timeFields[0], { step: 1, onChange: (v) => { ex.sets[i].seconds = (parseInt(v) || 0) * 60 + (parseInt(secInput.value) || 0); scheduleSave(); } });
+          attachNumberSwipe(timeFields[1], { step: 1, onChange: (v) => { ex.sets[i].seconds = (parseInt(minInput.value) || 0) * 60 + (parseInt(v) || 0); scheduleSave(); } });
         } else if (type === 'bodyweight') {
           row.style.gridTemplateColumns = '24px auto 1fr';
           row.innerHTML = `<div class="wt-set-num">${i+1}</div>
@@ -1035,7 +1050,7 @@
           attachNumberSwipe(fields[1], { step: 1, onChange: (v) => { ex.sets[i].reps = v; scheduleSave(); } });
         }
 
-        attachSwipe(row, { handleSelector: '.wt-drag-handle', wrapEl: swipeWrap });
+        attachSwipe(row, { handleSelector: '.wt-drag-handle', wrapEl: swipeWrap, reverse: true });
         delBtn.onclick = () => { ex.sets.splice(i, 1); scheduleSave(); render(); };
 
         swipeWrap.appendChild(delBtn);
@@ -1071,7 +1086,7 @@
     cardDeleteBtn.onclick = () => removeExerciseFromSession(exIdx);
     actions.appendChild(fillBtn);
     actions.appendChild(cardDeleteBtn);
-    attachSwipe(card, { reverse: true, fraction: 0.5, excludeSelector: '.wt-set-row-swipe', openThreshold: 0.35, wrapEl: outerSwipe });
+    attachSwipe(card, { fraction: 0.5, excludeSelector: '.wt-set-row-swipe', openThreshold: 0.35, wrapEl: outerSwipe });
     outerSwipe.appendChild(actions);
     outerSwipe.appendChild(card);
 
