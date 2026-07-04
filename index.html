@@ -182,6 +182,14 @@
   const TEMPLATE_COLORS = ['#ec4899', '#3b82f6', '#f0a83c', '#22c55e', '#a78bfa', '#22d3ee'];
   const DEFAULT_TEMPLATE_COLOR = '#ec4899';
 
+  const PRESET_TEMPLATES = {
+    fullbody1: { name: 'Full Body 1', exerciseIds: ['leg-press', 'lat-pulldown', 'chest-press', 'rdl', 'lateral-raise', 'cable-crunch'] },
+    fullbody2: { name: 'Full Body 2', exerciseIds: ['walking-lunge', 'cable-row', 'ohp', 'leg-curl', 'incline-press', 'face-pull'] },
+    push: { name: 'Push Day', exerciseIds: ['chest-press', 'ohp', 'incline-press', 'lateral-raise'] },
+    pull: { name: 'Pull Day', exerciseIds: ['lat-pulldown', 'cable-row', 'face-pull', 'rdl'] },
+    legs: { name: 'Leg Day', exerciseIds: ['leg-press', 'walking-lunge', 'leg-curl', 'calf-raise'] }
+  };
+
   function getTemplateColor(tpl) {
     return (tpl && tpl.color) || DEFAULT_TEMPLATE_COLOR;
   }
@@ -1455,17 +1463,29 @@
     if (creatingTemplate) {
       const form = document.createElement('div');
       form.className = 'wt-add-form';
-      form.innerHTML = `<label>Template name</label><input type="text" id="tf-name" placeholder="e.g. Leg Day" />`;
+      form.innerHTML = `<label>Start from</label>
+        <select id="tf-preset">
+          <option value="">Blank</option>
+          ${Object.keys(PRESET_TEMPLATES).map(key => `<option value="${key}">${escapeHtml(PRESET_TEMPLATES[key].name)}</option>`).join('')}
+        </select>
+        <label>Template name</label><input type="text" id="tf-name" placeholder="e.g. Leg Day" />`;
+      const presetSelect = form.querySelector('#tf-preset');
+      const nameInput = form.querySelector('#tf-name');
+      presetSelect.addEventListener('change', () => {
+        const preset = PRESET_TEMPLATES[presetSelect.value];
+        if (preset && !nameInput.value.trim()) nameInput.value = preset.name;
+      });
       const row = document.createElement('div');
       row.className = 'wt-actions-row';
       const saveBtn = document.createElement('button');
       saveBtn.className = 'wt-btn wt-btn-primary';
       saveBtn.textContent = 'Create';
       saveBtn.onclick = () => {
-        const name = form.querySelector('#tf-name').value.trim();
+        const name = nameInput.value.trim();
         if (!name) return;
+        const preset = PRESET_TEMPLATES[presetSelect.value];
         const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') + '-' + Date.now().toString(36);
-        data.templates[id] = { name, exerciseIds: [] };
+        data.templates[id] = { name, exerciseIds: preset ? [...preset.exerciseIds] : [] };
         manageTab = id;
         creatingTemplate = false;
         scheduleSave();
