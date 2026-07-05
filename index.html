@@ -54,6 +54,9 @@
   .wt-set-row { display: grid; grid-template-columns: 24px auto 1fr 1fr; gap: 8px; align-items: center; }
   .wt-set-num { font-size: 12px; color: var(--chalk-dim); text-align: center; font-weight: 700; }
   .wt-field { display: flex; align-items: center; background: var(--iron-900); border: 1px solid var(--iron-600); border-radius: 6px; overflow: hidden; touch-action: pan-y; }
+  .wt-intensity-field { display: flex; gap: 4px; }
+  .wt-intensity-btn { flex: 1; background: var(--iron-900); border: 1px solid var(--iron-600); color: var(--chalk-dim); border-radius: 6px; padding: 9px 0; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .wt-intensity-btn.active { background: var(--accent); border-color: var(--accent); color: var(--iron-900); }
   .wt-field-dragging { border-color: var(--accent); }
   .wt-field input { width: 100%; background: transparent; border: none; color: var(--chalk); font-size: 16px; padding: 9px 8px; text-align: center; font-variant-numeric: tabular-nums; }
   .wt-field input:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
@@ -181,6 +184,29 @@
 
   const TEMPLATE_COLORS = ['#ec4899', '#3b82f6', '#f0a83c', '#22c55e', '#a78bfa', '#22d3ee'];
   const DEFAULT_TEMPLATE_COLOR = '#ec4899';
+
+  const FIELD_TYPES = {
+    weight: { label: 'Weight' },
+    reps: { label: 'Reps' },
+    time: { label: 'Time' },
+    intensity: { label: 'Intensity' }
+  };
+
+  function fieldValueOf(fieldKey, s) {
+    if (fieldKey === 'weight') return s.weight;
+    if (fieldKey === 'reps') return s.reps;
+    if (fieldKey === 'time') return s.seconds;
+    if (fieldKey === 'intensity') return s.intensity;
+    return null;
+  }
+
+  function formatFieldValue(fieldKey, s) {
+    if (fieldKey === 'weight') return s.weight ? s.weight + 'lb' : null;
+    if (fieldKey === 'reps') return s.reps ? s.reps + ' reps' : null;
+    if (fieldKey === 'time') return s.seconds ? formatSeconds(s.seconds) : null;
+    if (fieldKey === 'intensity') return s.intensity ? 'Int ' + s.intensity + '/5' : null;
+    return null;
+  }
 
   const PRESET_TEMPLATES = {
     fullbody1: { name: 'Full Body 1', exerciseIds: ['leg-press', 'lat-pulldown', 'chest-press', 'rdl', 'lateral-raise', 'cable-crunch'] },
@@ -421,6 +447,7 @@
     if (type === 'checkbox') return !!s.checked;
     if (type === 'timed') return !!s.seconds;
     if (type === 'bodyweight') return !!s.reps;
+    if (type === 'custom') return (ex.fields || []).some(f => !!fieldValueOf(f, s));
     return !!s.weight;
   }
 
@@ -447,12 +474,20 @@
       const best = lastEx.sets.filter(s => s.reps).sort((a,b) => (b.reps||0)-(a.reps||0))[0];
       return best ? best.reps + ' reps' : null;
     }
+    if (type === 'custom') {
+      const fields = lastEx.fields || [];
+      const withData = lastEx.sets.filter(s => setHasData(lastEx, s));
+      const best = withData[withData.length - 1];
+      if (!best) return null;
+      const parts = fields.map(f => formatFieldValue(f, best)).filter(Boolean);
+      return parts.length ? parts.join(' · ') : null;
+    }
     const best = lastEx.sets.filter(s => s.weight).sort((a,b) => (b.weight||0)-(a.weight||0))[0];
     return best ? best.weight + 'lb x' + best.reps : null;
   }
 
   function makeEmptySets(count) {
-    return Array.from({ length: count }, () => ({ weight: '', reps: '', seconds: '', checked: false }));
+    return Array.from({ length: count }, () => ({ weight: '', reps: '', seconds: '', checked: false, intensity: '' }));
   }
 
   function startSession(templateKey) {
@@ -460,12 +495,14 @@
     const exercises = tpl.exerciseIds.map(id => {
       const lib = getLibraryEx(id);
       const type = lib.type || 'weight';
-      return {
+      const ex = {
         exerciseId: id,
         name: lib.name,
         type,
-        sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', checked: false }] : makeEmptySets(lib.sets)
+        sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', checked: false, intensity: '' }] : makeEmptySets(lib.sets)
       };
+      if (type === 'custom') ex.fields = lib.fields;
+      return ex;
     });
     data.draft = { templateKey, templateName: tpl.name, startedAt: Date.now(), notes: '', exercises };
     scheduleSave();
@@ -484,7 +521,8 @@
         exerciseId: e.exerciseId,
         name: e.name,
         type: e.type || 'weight',
-        sets: e.sets.map(s => ({ weight: s.weight, reps: s.reps, seconds: s.seconds, checked: s.checked }))
+        fields: e.fields,
+        sets: e.sets.map(s => ({ weight: s.weight, reps: s.reps, seconds: s.seconds, checked: s.checked, intensity: s.intensity }))
       }))
     };
     scheduleSave();
@@ -540,12 +578,14 @@
   function addExerciseToSession(exerciseId) {
     const lib = getLibraryEx(exerciseId);
     const type = lib.type || 'weight';
-    data.draft.exercises.push({
+    const ex = {
       exerciseId,
       name: lib.name,
       type,
-      sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', checked: false }] : makeEmptySets(lib.sets)
-    });
+      sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', checked: false, intensity: '' }] : makeEmptySets(lib.sets)
+    };
+    if (type === 'custom') ex.fields = lib.fields;
+    data.draft.exercises.push(ex);
     pickerOpenFor = null;
     creatingNew = false;
     scheduleSave();
@@ -555,6 +595,7 @@
   function addNewLibraryExercise(fields) {
     const id = fields.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') + '-' + Date.now().toString(36);
     const newEx = { id, name: fields.name, sets: fields.sets, repRange: fields.repRange, type: fields.type || 'weight' };
+    if (fields.type === 'custom') newEx.fields = fields.fields;
     data.library.push(newEx);
     return id;
   }
@@ -578,6 +619,8 @@
     ex.type = fields.type;
     ex.sets = fields.sets;
     ex.repRange = fields.repRange;
+    if (fields.type === 'custom') ex.fields = fields.fields;
+    else delete ex.fields;
     editingExercise = null;
     scheduleSave();
     render();
@@ -1236,6 +1279,64 @@
             <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${s.reps || ''}" data-role="reps" /><span class="wt-unit">reps</span></div>`;
           row.querySelector('[data-role="reps"]').addEventListener('input', (e) => { ex.sets[i].reps = e.target.value; scheduleSave(); });
           attachNumberSwipe(row.querySelector('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].reps = v; scheduleSave(); } });
+        } else if (type === 'custom') {
+          const customFieldKeys = ex.fields || ['weight', 'reps'];
+          let colCount = 0;
+          customFieldKeys.forEach(f => { colCount += f === 'time' ? 2 : 1; });
+          row.style.gridTemplateColumns = '24px auto ' + Array(colCount).fill('1fr').join(' ');
+
+          let html = `<div class="wt-set-num">${i+1}</div><div class="wt-drag-handle"><span></span><span></span></div>`;
+          customFieldKeys.forEach(f => {
+            if (f === 'weight') {
+              html += `<div class="wt-field"><input type="number" inputmode="decimal" placeholder="0" value="${s.weight || ''}" data-role="weight" /><span class="wt-unit">lbs</span></div>`;
+            } else if (f === 'reps') {
+              html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${s.reps || ''}" data-role="reps" /><span class="wt-unit">reps</span></div>`;
+            } else if (f === 'time') {
+              const totalSec = s.seconds ? Math.max(0, Math.round(parseFloat(s.seconds) || 0)) : null;
+              const minVal = totalSec !== null ? Math.floor(totalSec / 60) : '';
+              const secVal = totalSec !== null ? totalSec % 60 : '';
+              html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${minVal}" data-role="min" /><span class="wt-unit">min</span></div>`;
+              html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${secVal}" data-role="sec" /><span class="wt-unit">sec</span></div>`;
+            } else if (f === 'intensity') {
+              html += `<div class="wt-intensity-field" data-role="intensity">${[1,2,3,4,5].map(n => `<button type="button" data-val="${n}" class="wt-intensity-btn${s.intensity == n ? ' active' : ''}">${n}</button>`).join('')}</div>`;
+            }
+          });
+          row.innerHTML = html;
+
+          const weightInput = row.querySelector('[data-role="weight"]');
+          if (weightInput) {
+            weightInput.addEventListener('input', (e) => { ex.sets[i].weight = e.target.value; scheduleSave(); });
+            attachNumberSwipe(weightInput.closest('.wt-field'), { step: 2.5, onChange: (v) => { ex.sets[i].weight = v; scheduleSave(); } });
+          }
+          const repsInput = row.querySelector('[data-role="reps"]');
+          if (repsInput) {
+            repsInput.addEventListener('input', (e) => { ex.sets[i].reps = e.target.value; scheduleSave(); });
+            attachNumberSwipe(repsInput.closest('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].reps = v; scheduleSave(); } });
+          }
+          const minInput = row.querySelector('[data-role="min"]');
+          const secInput = row.querySelector('[data-role="sec"]');
+          if (minInput && secInput) {
+            const commitTime = () => {
+              const m = parseInt(minInput.value) || 0;
+              const sc = parseInt(secInput.value) || 0;
+              ex.sets[i].seconds = m * 60 + sc;
+              scheduleSave();
+            };
+            minInput.addEventListener('input', commitTime);
+            secInput.addEventListener('input', commitTime);
+            attachNumberSwipe(minInput.closest('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].seconds = (parseInt(v) || 0) * 60 + (parseInt(secInput.value) || 0); scheduleSave(); } });
+            attachNumberSwipe(secInput.closest('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].seconds = (parseInt(minInput.value) || 0) * 60 + (parseInt(v) || 0); scheduleSave(); } });
+          }
+          const intensityField = row.querySelector('[data-role="intensity"]');
+          if (intensityField) {
+            intensityField.querySelectorAll('button').forEach(btn => {
+              btn.onclick = () => {
+                ex.sets[i].intensity = parseInt(btn.dataset.val);
+                scheduleSave();
+                render();
+              };
+            });
+          }
         } else {
           row.style.gridTemplateColumns = '24px auto 1fr 1fr';
           row.innerHTML = `<div class="wt-set-num">${i+1}</div>
@@ -1261,7 +1362,7 @@
       const addSetBtn = document.createElement('button');
       addSetBtn.className = 'wt-addset-btn';
       addSetBtn.textContent = '+ Add Set';
-      addSetBtn.onclick = () => { ex.sets.push({ weight: '', reps: '', seconds: '', checked: false }); scheduleSave(); render(); };
+      addSetBtn.onclick = () => { ex.sets.push({ weight: '', reps: '', seconds: '', checked: false, intensity: '' }); scheduleSave(); render(); };
       card.appendChild(addSetBtn);
     }
 
@@ -1275,7 +1376,7 @@
     if (!lastEx) fillBtn.disabled = true;
     fillBtn.onclick = () => {
       if (!lastEx) { showToast('No previous data for this exercise'); return; }
-      ex.sets = lastEx.sets.map(s => ({ weight: s.weight, reps: s.reps, seconds: s.seconds, checked: s.checked }));
+      ex.sets = lastEx.sets.map(s => ({ weight: s.weight, reps: s.reps, seconds: s.seconds, checked: s.checked, intensity: s.intensity }));
       scheduleSave();
       render();
     };
@@ -1380,6 +1481,8 @@
   function buildNewExerciseForm(onSave, onCancel, opts) {
     opts = opts || {};
     const initial = opts.initial || { name: '', type: 'weight', sets: 3, repRange: '8-12' };
+    let customFields = (initial.fields && initial.fields.slice()) || ['weight', 'reps'];
+
     const form = document.createElement('div');
     form.className = 'wt-add-form';
     form.innerHTML = `
@@ -1391,19 +1494,73 @@
         <option value="bodyweight">Bodyweight (reps only)</option>
         <option value="timed">Timed (duration only)</option>
         <option value="checkbox">Checkmark (done / not done)</option>
+        <option value="custom">Custom (choose your own fields)</option>
       </select>
       <div class="wt-form-row" id="nf-details-row">
         <div><label>Sets</label><input type="number" id="nf-sets" value="${initial.sets}" /></div>
         <div><label>Target range</label><input type="text" id="nf-reps" value="${escapeHtml(initial.repRange)}" /></div>
       </div>
+      <div id="nf-custom-row" style="display:none;">
+        <button type="button" class="wt-btn wt-btn-ghost wt-btn-sm" id="nf-cardio-preset" style="margin-bottom:10px;">Use Cardio Preset (Time + Intensity)</button>
+        <label>Fields (tap to add, in the order you want)</label>
+        <div id="nf-field-add-row" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;"></div>
+        <label>Selected fields, in order</label>
+        <div id="nf-field-chip-row" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;"></div>
+      </div>
     `;
     const detailsRow = form.querySelector('#nf-details-row');
+    const customRow = form.querySelector('#nf-custom-row');
+    const addRow = form.querySelector('#nf-field-add-row');
+    const chipRow = form.querySelector('#nf-field-chip-row');
     const typeSelect = form.querySelector('#nf-type');
     typeSelect.value = initial.type || 'weight';
-    detailsRow.style.display = typeSelect.value === 'checkbox' ? 'none' : 'flex';
-    typeSelect.addEventListener('change', () => {
-      detailsRow.style.display = typeSelect.value === 'checkbox' ? 'none' : 'flex';
-    });
+
+    function renderFieldPicker() {
+      addRow.innerHTML = '';
+      Object.keys(FIELD_TYPES).forEach(key => {
+        if (customFields.includes(key)) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'wt-btn wt-btn-ghost wt-btn-sm';
+        btn.textContent = '+ ' + FIELD_TYPES[key].label;
+        btn.onclick = () => { customFields.push(key); renderFieldPicker(); };
+        addRow.appendChild(btn);
+      });
+      chipRow.innerHTML = '';
+      if (customFields.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'wt-sub';
+        empty.textContent = 'No fields selected yet.';
+        chipRow.appendChild(empty);
+      } else {
+        customFields.forEach(key => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'wt-btn wt-btn-primary wt-btn-sm';
+          chip.textContent = FIELD_TYPES[key].label + ' ×';
+          chip.onclick = () => { customFields = customFields.filter(f => f !== key); renderFieldPicker(); };
+          chipRow.appendChild(chip);
+        });
+      }
+    }
+
+    function updateVisibility() {
+      const isCheckbox = typeSelect.value === 'checkbox';
+      const isCustom = typeSelect.value === 'custom';
+      detailsRow.style.display = isCheckbox ? 'none' : 'flex';
+      customRow.style.display = isCustom ? 'block' : 'none';
+      if (isCustom) renderFieldPicker();
+    }
+    updateVisibility();
+    typeSelect.addEventListener('change', updateVisibility);
+
+    form.querySelector('#nf-cardio-preset').onclick = () => {
+      customFields = ['time', 'intensity'];
+      renderFieldPicker();
+      const nameInput = form.querySelector('#nf-name');
+      if (!nameInput.value.trim()) nameInput.value = 'Cardio';
+    };
+
     const row = document.createElement('div');
     row.className = 'wt-actions-row';
     const saveBtn = document.createElement('button');
@@ -1413,11 +1570,13 @@
       const name = form.querySelector('#nf-name').value.trim();
       if (!name) return;
       const type = typeSelect.value;
+      if (type === 'custom' && customFields.length === 0) { showToast('Pick at least one field'); return; }
       onSave({
         name,
         type,
         sets: type === 'checkbox' ? 1 : (parseInt(form.querySelector('#nf-sets').value) || 3),
-        repRange: type === 'checkbox' ? '' : (form.querySelector('#nf-reps').value.trim() || '8-12')
+        repRange: type === 'checkbox' ? '' : (form.querySelector('#nf-reps').value.trim() || '8-12'),
+        fields: type === 'custom' ? customFields.slice() : undefined
       });
     };
     const cancelBtn = document.createElement('button');
@@ -1753,6 +1912,10 @@
         if (type === 'checkbox') setsStr = '\u2713 Completed';
         else if (type === 'timed') setsStr = ex.sets.filter(x => x.seconds).map(x => formatSeconds(x.seconds)).join(', ');
         else if (type === 'bodyweight') setsStr = ex.sets.filter(x => x.reps).map(x => x.reps + ' reps').join(', ');
+        else if (type === 'custom') {
+          const customFieldKeys = ex.fields || [];
+          setsStr = ex.sets.filter(x => setHasData(ex, x)).map(x => customFieldKeys.map(f => formatFieldValue(f, x)).filter(Boolean).join(' \u00b7 ')).join(', ');
+        }
         else setsStr = ex.sets.filter(x => x.weight).map(x => x.weight + '\u00d7' + x.reps).join(', ');
         const row = document.createElement('div');
         row.className = 'wt-history-detail-row';
@@ -1889,7 +2052,7 @@
 
     const loggedExIds = new Set();
     data.sessions.forEach(s => s.exercises.forEach(ex => { if (ex.sets.some(x => setHasData(ex, x))) loggedExIds.add(ex.exerciseId); }));
-    const options = data.library.filter(e => loggedExIds.has(e.id) && (e.type || 'weight') !== 'checkbox');
+    const options = data.library.filter(e => loggedExIds.has(e.id) && (e.type || 'weight') !== 'checkbox' && e.type !== 'custom');
 
     if (options.length === 0) {
       wrap.innerHTML += '<div class="wt-empty">Log a few sessions to see trends here.</div>';
