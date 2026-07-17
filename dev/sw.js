@@ -1,4 +1,4 @@
-const CACHE_NAME = 'little-logger-dev-v1';
+const CACHE_NAME = 'little-logger-dev-v2';
 const CORE_ASSETS = [
   './',
   './index.html',

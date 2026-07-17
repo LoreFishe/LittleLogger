@@ -116,6 +116,8 @@
   .wt-history-detail-row { display: flex; justify-content: space-between; padding: 3px 0; }
   .wt-history-detail-row span:first-child { color: var(--chalk); }
   .wt-history-notes { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--iron-700); font-style: italic; color: var(--chalk-dim); font-size: 12px; }
+  .wt-history-edit-menu { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--iron-700); }
+  .wt-history-edit-menu .wt-btn-sm { align-self: center; }
   .wt-back-btn { background: var(--iron-900); border: none; color: var(--chalk-dim); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 12px 14px 12px 4px; margin: -12px 0 0 -4px; border-radius: 6px; position: sticky; top: env(safe-area-inset-top); z-index: 5; }
   .wt-back-btn:active { background: var(--iron-800); }
   .wt-empty { text-align: center; color: var(--chalk-dim); font-size: 13px; padding: 30px 10px; }
@@ -580,6 +582,7 @@
   let creatingTemplate = false;
   let templateDeleteArmed = false;
   let historyExpanded = null;
+  let historyEditSubMode = null; // null | 'menu' | 'date' | 'log' — sub-view within the expanded history row
   let trendsExerciseId = null;
   let calendarMonthOffset = 0;
   let selectedCalendarDay = null;
@@ -702,6 +705,20 @@
     sec = Math.max(0, Math.round(sec));
     const m = Math.floor(sec / 60), s = sec % 60;
     return m > 0 ? m + ':' + String(s).padStart(2, '0') : sec + 's';
+  }
+
+  function toDateInputValue(timestamp) {
+    const d = new Date(timestamp);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  // Swaps in a new calendar date while preserving the original time-of-day,
+  // so correcting "logged under the wrong day" doesn't also reset the clock time.
+  function withDateKeepingTime(originalTimestamp, dateInputValue) {
+    const [y, m, d] = dateInputValue.split('-').map(Number);
+    const result = new Date(originalTimestamp);
+    result.setFullYear(y, m - 1, d);
+    return result.getTime();
   }
 
   const openSwipes = new Set();
@@ -1069,6 +1086,7 @@
     };
     scheduleSave();
     historyExpanded = null;
+    historyEditSubMode = null;
     const tpl = session.templateKey && data.templates[session.templateKey];
     if (tpl) {
       homeOpenKey = getTemplateCategory(tpl) + ':tpl:' + session.templateKey;
@@ -2959,7 +2977,9 @@
     return wrap;
   }
 
-  function buildSessionExerciseCard(ex, exIdx) {
+  function buildSessionExerciseCard(ex, exIdx, opts) {
+    opts = opts || {};
+    const onDeleteExercise = opts.onDelete || (() => removeExerciseFromSession(exIdx));
     const type = ex.type || 'weight';
     const lib = getLibraryEx(ex.exerciseId);
     const lastDisplay = findLastLoggedDisplay(ex.exerciseId);
@@ -3102,8 +3122,8 @@
     const cardDeleteBtn = document.createElement('button');
     cardDeleteBtn.className = 'wt-swipe-delete';
     cardDeleteBtn.textContent = 'Delete';
-    cardDeleteBtn.onclick = () => removeExerciseFromSession(exIdx);
-    attachSwipe(card, { excludeSelector: '.wt-set-row-swipe', wrapEl: outerSwipe });
+    cardDeleteBtn.onclick = onDeleteExercise;
+    attachSwipe(card, { excludeSelector: '.wt-set-row-swipe', wrapEl: outerSwipe, distance: 90, openThreshold: 0.35 });
     outerSwipe.appendChild(cardDeleteBtn);
     outerSwipe.appendChild(card);
 
@@ -3657,8 +3677,22 @@
     const swipeWrap = document.createElement('div');
     swipeWrap.className = 'wt-swipe-wrap';
 
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'wt-ex-row-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'wt-ex-row-edit';
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = (e) => {
+      e.stopPropagation();
+      swipeCtrl.close();
+      historyExpanded = s.id;
+      historyEditSubMode = 'menu';
+      render();
+    };
+
     const delBtn = document.createElement('button');
-    delBtn.className = 'wt-swipe-delete';
+    delBtn.className = 'wt-ex-row-delete';
     delBtn.textContent = 'Delete';
     let deleteArmed = false;
     delBtn.onclick = (e) => {
@@ -3673,6 +3707,8 @@
       scheduleSave();
       render();
     };
+    actionsRow.appendChild(editBtn);
+    actionsRow.appendChild(delBtn);
 
     const item = document.createElement('div');
     item.className = 'wt-history-item wt-swipe-content';
@@ -3682,7 +3718,72 @@
     item.appendChild(head);
 
     const loggedExercises = s.exercises.filter(ex => ex.sets.some(x => setHasData(ex, x)));
-    if (historyExpanded === s.id) {
+
+    if (historyExpanded === s.id && historyEditSubMode === 'menu') {
+      const menu = document.createElement('div');
+      menu.className = 'wt-history-edit-menu';
+      const dateBtn = document.createElement('button');
+      dateBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+      dateBtn.textContent = 'Change Date';
+      dateBtn.onclick = (e) => { e.stopPropagation(); historyEditSubMode = 'date'; render(); };
+      const logBtn = document.createElement('button');
+      logBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
+      logBtn.textContent = 'Edit Exercise Log';
+      logBtn.onclick = (e) => { e.stopPropagation(); historyEditSubMode = 'log'; render(); };
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'wt-btn wt-btn-ghost wt-btn-sm';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = (e) => { e.stopPropagation(); historyExpanded = null; historyEditSubMode = null; render(); };
+      menu.appendChild(dateBtn);
+      menu.appendChild(logBtn);
+      menu.appendChild(cancelBtn);
+      item.appendChild(menu);
+    } else if (historyExpanded === s.id && historyEditSubMode === 'date') {
+      const dateForm = document.createElement('div');
+      dateForm.className = 'wt-add-form';
+      dateForm.innerHTML = `<label>Session Date</label><input type="date" id="hist-date-input" value="${toDateInputValue(s.timestamp)}" />`;
+      const actions = document.createElement('div');
+      actions.className = 'wt-actions-row';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'wt-btn wt-btn-ghost';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = (e) => { e.stopPropagation(); historyEditSubMode = 'menu'; render(); };
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'wt-btn wt-btn-primary';
+      saveBtn.textContent = 'Save';
+      saveBtn.onclick = (e) => {
+        e.stopPropagation();
+        const val = dateForm.querySelector('#hist-date-input').value;
+        if (val) s.timestamp = withDateKeepingTime(s.timestamp, val);
+        persist();
+        historyEditSubMode = null;
+        render();
+      };
+      actions.appendChild(cancelBtn);
+      actions.appendChild(saveBtn);
+      dateForm.appendChild(actions);
+      item.appendChild(dateForm);
+    } else if (historyExpanded === s.id && historyEditSubMode === 'log') {
+      const logWrap = document.createElement('div');
+      logWrap.className = 'wt-history-log-editor';
+      logWrap.style.marginTop = '8px';
+      s.exercises.forEach((ex, exIdx) => {
+        logWrap.appendChild(buildSessionExerciseCard(ex, exIdx, {
+          onDelete: () => {
+            if (s.exercises.length <= 1) { showToast('A session needs at least one exercise \u2014 delete the whole session instead'); return; }
+            s.exercises.splice(exIdx, 1);
+            persist();
+            render();
+          }
+        }));
+      });
+      const doneBtn = document.createElement('button');
+      doneBtn.className = 'wt-btn wt-btn-primary wt-btn-full';
+      doneBtn.textContent = 'Done Editing';
+      doneBtn.onclick = (e) => { e.stopPropagation(); historyEditSubMode = null; render(); };
+      logWrap.appendChild(doneBtn);
+      item.appendChild(logWrap);
+    } else if (historyExpanded === s.id) {
       const detail = document.createElement('div');
       detail.className = 'wt-history-detail';
       loggedExercises.forEach(ex => {
@@ -3716,14 +3817,18 @@
       item.appendChild(detail);
     }
 
-    const swipeCtrl = attachSwipe(item, { wrapEl: swipeWrap });
+    // excludeSelector is scoped to nested swipe-wraps inside the log editor
+    // specifically — matching the bare '.wt-swipe-wrap' class would also match
+    // this row's own wrapper (its direct parent), disabling the swipe entirely.
+    const swipeCtrl = attachSwipe(item, { wrapEl: swipeWrap, distance: 120, openThreshold: 0.35, excludeSelector: '.wt-history-log-editor .wt-swipe-wrap' });
     item.addEventListener('click', () => {
       if (swipeCtrl.isOpen()) { swipeCtrl.close(); return; }
       historyExpanded = historyExpanded === s.id ? null : s.id;
+      historyEditSubMode = null;
       render();
     });
 
-    swipeWrap.appendChild(delBtn);
+    swipeWrap.appendChild(actionsRow);
     swipeWrap.appendChild(item);
     return swipeWrap;
   }
