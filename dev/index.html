@@ -3821,7 +3821,15 @@
     // specifically — matching the bare '.wt-swipe-wrap' class would also match
     // this row's own wrapper (its direct parent), disabling the swipe entirely.
     const swipeCtrl = attachSwipe(item, { wrapEl: swipeWrap, distance: 120, openThreshold: 0.35, excludeSelector: '.wt-history-log-editor .wt-swipe-wrap' });
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
+      // Don't collapse the row when the tap lands on an interactive control inside
+      // it (date input, set fields, buttons) — those already handle their own
+      // clicks, and without this check the click still bubbles up here and yanks
+      // the row (and any native picker it just opened) shut immediately.
+      // .wt-field is included because attachNumberSwipe calls setPointerCapture on
+      // it for every tap, which retargets the resulting click event's e.target to
+      // the wrapper div instead of the <input> nested inside it.
+      if (e.target.closest('button, input, select, textarea, a, label, .wt-field')) return;
       if (swipeCtrl.isOpen()) { swipeCtrl.close(); return; }
       historyExpanded = historyExpanded === s.id ? null : s.id;
       historyEditSubMode = null;
