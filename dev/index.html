@@ -21,6 +21,9 @@
     --chalk: #f2f0ea;
     --chalk-dim: #9a9ba3;
     --accent: #ec4899;
+    --highlight: #f5c344;
+    --warmup-color: #a78bfa;
+    --cardio-color: #3fa9dc;
     --green: #6fbf73;
     --danger: #e5342b;
     --radius: 8px;
@@ -35,6 +38,7 @@
     max-width: 480px;
     margin: 0 auto;
   }
+  .wt-root.has-bottomnav { padding-bottom: calc(98px + env(safe-area-inset-bottom)); }
   .wt-header { display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
   .wt-title { font-size: 22px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
   .wt-plate { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--accent); position: relative; flex-shrink: 0; }
@@ -77,6 +81,7 @@
   .wt-btn { border: none; border-radius: 6px; padding: 10px 14px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; cursor: pointer; }
   .wt-btn:active { opacity: 0.7; }
   .wt-btn-primary { background: var(--accent); color: var(--iron-900); }
+  .wt-btn-selected { background: var(--highlight); color: var(--iron-900); }
   .wt-btn-ghost { background: var(--iron-700); color: var(--chalk); }
   .wt-btn-danger { background: transparent; color: var(--danger); border: 1px solid #6a3530; }
   .wt-btn-sm { padding: 6px 10px; font-size: 11px; }
@@ -95,7 +100,7 @@
   .wt-wheel-scroller { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .wt-wheel-scroller::-webkit-scrollbar { width: 0; height: 0; }
   .wt-wheel-item { scroll-snap-align: center; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--chalk-dim); cursor: pointer; text-align: center; padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.15s ease; }
-  .wt-wheel-item.active { color: var(--chalk); font-weight: 800; font-size: 16px; }
+  .wt-wheel-item.active { color: var(--highlight); font-weight: 800; font-size: 16px; }
   .wt-wheel-highlight { position: absolute; top: 50%; left: 4px; right: 4px; transform: translateY(-50%); border-top: 1px solid var(--iron-600); border-bottom: 1px solid var(--iron-600); pointer-events: none; z-index: 2; }
   .wt-wheel::before, .wt-wheel::after { content: ''; position: absolute; left: 0; right: 0; height: 36%; pointer-events: none; z-index: 3; }
   .wt-wheel::before { top: 0; background: linear-gradient(to bottom, var(--iron-900), transparent); }
@@ -121,10 +126,6 @@
   .wt-toast.show { opacity: 1; }
   .wt-swipe-wrap { position: relative; overflow: hidden; border-radius: var(--radius); margin-bottom: 10px; width: 100%; }
   .wt-swipe-delete { position: absolute; top: 0; right: 0; bottom: 0; width: 70px; background: var(--danger); color: var(--iron-900); border: none; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; z-index: 0; }
-  .wt-swipe-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 50%; z-index: 0; display: flex; flex-direction: column; }
-  .wt-swipe-fill { flex: 65; background: var(--accent); color: var(--iron-900); border: none; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2px; }
-  .wt-swipe-fill:disabled { background: var(--iron-700); color: var(--chalk-dim); }
-  .wt-swipe-card-delete { flex: 35; background: var(--danger); color: var(--iron-900); border: none; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
   .wt-ex-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .wt-ex-row-actions { position: absolute; top: 0; right: 0; bottom: 0; width: 120px; display: flex; z-index: 0; }
   .wt-ex-row-edit { flex: 1; background: var(--iron-700); color: var(--chalk); border: none; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -167,12 +168,16 @@
   .wt-settings-label:first-child { margin-top: 0; }
   .wt-theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .wt-theme-card { text-align: left; border: 2px solid var(--iron-700); background: var(--iron-800); border-radius: var(--radius); padding: 10px; cursor: pointer; }
-  .wt-theme-card.active { border-color: var(--accent); }
+  .wt-theme-card.active { border-color: var(--highlight); }
   .wt-theme-swatch { display: flex; gap: 4px; height: 28px; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
   .wt-theme-swatch span { flex: 1; height: 100%; }
   .wt-theme-card-name { font-size: 13px; font-weight: 700; color: var(--chalk); display: flex; align-items: center; justify-content: space-between; }
-  .wt-theme-card-check { color: var(--accent); font-size: 14px; font-weight: 800; visibility: hidden; }
+  .wt-theme-card-check { color: var(--highlight); font-size: 14px; font-weight: 800; visibility: hidden; }
   .wt-theme-card.active .wt-theme-card-check { visibility: visible; }
+  .wt-tuner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .wt-tuner-row { display: flex; align-items: center; gap: 8px; background: var(--iron-800); border: 1px solid var(--iron-700); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+  .wt-tuner-row input[type="color"] { width: 26px; height: 26px; border: none; border-radius: 6px; padding: 0; background: none; cursor: pointer; flex-shrink: 0; }
+  .wt-tuner-row span { font-size: 11.5px; font-weight: 600; color: var(--chalk); }
   .wt-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--iron-800); border: 1px solid var(--iron-700); border-radius: var(--radius); padding: 12px 14px; }
   .wt-switch-row-label { font-size: 14px; font-weight: 700; color: var(--chalk); display: block; }
   .wt-switch-row-hint { font-size: 11px; color: var(--chalk-dim); display: block; margin-top: 2px; line-height: 1.4; }
@@ -183,33 +188,69 @@
   @media (prefers-reduced-motion: reduce) { .wt-switch-knob { transition: none; } }
 
   .wt-home-section { margin-bottom: 22px; }
-  .wt-home-section[data-section="warmup"] { --hs-color: #a78bfa; }
-  .wt-home-section[data-section="cardio"] { --hs-color: #3fa9dc; }
+  .wt-home-section[data-section="warmup"] { --hs-color: var(--warmup-color); }
+  .wt-home-section[data-section="cardio"] { --hs-color: var(--cardio-color); }
   .wt-home-section[data-section="strength"] { --hs-color: var(--accent); }
   .wt-home-section-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
   .wt-home-section-head h2 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; margin: 0; color: var(--chalk); }
   .wt-home-section-hint { font-size: 10.5px; color: var(--chalk-dim); }
-  .wt-home-chip-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+  .wt-home-chip-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .wt-home-chip { position: relative; background: var(--iron-800); border: 1px solid var(--iron-600); border-radius: 10px; padding: 12px 6px 11px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--chalk-dim); font-weight: 800; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.15px; cursor: pointer; }
   .wt-home-chip-label { text-align: center; line-height: 1.2; }
   .wt-home-chip.session .wt-home-chip-label::before { content: '▤ '; }
   .wt-home-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--hs-color); }
   .wt-home-chip.add { background: none; border: 1px dashed var(--iron-600); color: var(--chalk-dim); }
   .wt-home-chip.add::before { display: none; }
-  .wt-home-chip.expanded { border-color: var(--hs-color); background: var(--iron-700); color: var(--chalk); }
+  .wt-home-chip.expanded { border-color: var(--highlight); background: var(--iron-700); color: var(--chalk); }
   .wt-home-chip.done { border-color: var(--hs-color); }
   .wt-home-chip.in-progress { border-color: var(--hs-color); border-style: dashed; }
   .wt-home-chip-check { position: absolute; top: -6px; right: -6px; width: 17px; height: 17px; border-radius: 50%; background: var(--hs-color); color: #15130f; font-size: 9.5px; font-weight: 900; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.5); transition: opacity 0.18s ease, transform 0.18s ease; }
   .wt-home-chip.done .wt-home-chip-check { opacity: 1; transform: scale(1); }
   @media (prefers-reduced-motion: reduce) { .wt-home-chip-check { transition: none; } }
-  .wt-home-panel { margin-top: 10px; padding: 12px; border: 1px solid var(--hs-color); border-radius: var(--radius); background: var(--iron-900); }
+  .wt-home-panel { margin-top: 10px; padding: 12px; border: 1px solid var(--highlight); border-radius: var(--radius); background: var(--iron-900); }
   .wt-suggest-row { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--iron-900); border: 1px dashed var(--accent); border-radius: 8px; padding: 10px 12px; cursor: pointer; text-align: left; margin-bottom: 8px; }
   .wt-suggest-row-text { display: flex; flex-direction: column; gap: 2px; }
   .wt-suggest-row-text strong { font-size: 13px; color: var(--chalk); }
   .wt-suggest-row-text span { font-size: 11px; color: var(--chalk-dim); }
   .wt-suggest-row-plus { font-size: 16px; font-weight: 900; color: var(--accent); flex-shrink: 0; }
+  .wt-fatigue-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .wt-fatigue-label { width: 74px; flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--chalk); text-transform: capitalize; }
+  .wt-fatigue-track { flex: 1; height: 10px; background: var(--iron-700); border-radius: 5px; overflow: hidden; }
+  .wt-fatigue-fill { height: 100%; border-radius: 5px; background: var(--accent); }
+  .wt-fatigue-val { width: 38px; text-align: right; font-size: 11px; color: var(--chalk-dim); font-variant-numeric: tabular-nums; flex-shrink: 0; }
 
+  .wt-bottom-nav { position: fixed; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 25; display: flex; gap: 2px; background: var(--iron-800); border: 1px solid var(--iron-700); border-radius: 999px; padding: 6px; box-shadow: 0 10px 28px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.28); width: calc(100% - 32px); max-width: 448px; margin: 0 auto; }
+  .wt-bottom-nav-btn { position: relative; flex: 1; background: none; border: none; color: var(--chalk-dim); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 7px 2px; cursor: pointer; font-size: 10px; font-weight: 600; letter-spacing: 0.2px; border-radius: 999px; }
+  .wt-bottom-nav-btn::before { content: ''; position: absolute; inset: 0; border-radius: 999px; background: var(--highlight); opacity: 0; transition: opacity 0.18s ease; }
+  .wt-bottom-nav-btn.active::before { opacity: 0.18; }
+  .wt-bottom-nav-btn-icon { position: relative; display: flex; }
+  .wt-bottom-nav-btn-icon svg { width: 21px; height: 21px; display: block; }
+  .wt-bottom-nav-btn span:last-child { position: relative; }
+  .wt-bottom-nav-btn.active { color: var(--highlight); }
+  .wt-segmented { display: flex; gap: 6px; margin-bottom: 14px; }
+  .wt-segmented button { flex: 1; }
+  .wt-summary-card { background: var(--iron-800); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1px solid var(--iron-700); }
+  .wt-summary-card-title { font-size: 13px; font-weight: 700; color: var(--chalk-dim); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+  .wt-goal-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+  .wt-goal-row-label { font-size: 13px; font-weight: 600; text-transform: capitalize; }
+  .wt-goal-pill { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--iron-700); color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+  .wt-goal-pill.met { background: var(--green); color: var(--iron-900); }
+  .wt-streak-row { display: flex; align-items: baseline; gap: 8px; }
+  .wt-streak-num { font-size: 28px; font-weight: 900; color: var(--accent); }
+  .wt-streak-label { font-size: 12px; color: var(--chalk-dim); }
+  .wt-summary-stat-row { display: flex; gap: 10px; }
+  .wt-summary-stat { flex: 1; text-align: center; background: var(--iron-900); border-radius: 6px; padding: 10px 4px; }
+  .wt-summary-stat-num { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .wt-summary-stat-label { font-size: 10px; color: var(--chalk-dim); text-transform: uppercase; margin-top: 2px; }
+  .wt-recent-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--iron-700); }
+  .wt-recent-row:last-child { border-bottom: none; }
+  .wt-recent-row-name { font-size: 13px; font-weight: 600; }
+  .wt-recent-row-date { font-size: 11px; color: var(--chalk-dim); }
+  .wt-goals-edit-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; }
+  .wt-goals-edit-input-group { display: flex; align-items: center; gap: 8px; }
+  .wt-goals-edit-row input { width: 40px; background: var(--iron-900); border: 1px solid var(--iron-600); color: var(--chalk); border-radius: 6px; padding: 6px; text-align: center; font-size: 13px; }
   .wt-widgets-fab { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom)); right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); border: none; box-shadow: 0 4px 14px rgba(0,0,0,0.4); z-index: 30; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; padding: 14px; cursor: pointer; }
+  .wt-widgets-fab.raised { bottom: calc(98px + env(safe-area-inset-bottom)); }
   .wt-widgets-fab span { background: var(--iron-900); border-radius: 2px; display: block; }
   .wt-widgets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .wt-widget-tile { position: relative; }
@@ -244,6 +285,12 @@
   const STORAGE_KEY = 'workout-data-v2';
   const root = document.getElementById('wt-root');
   const toastEl = document.getElementById('wt-toast');
+
+  const DEFAULT_GOALS = {
+    warmup: 5,
+    cardio: 3,
+    strength: 1
+  };
 
   const DEFAULT_LIBRARY = [
     { id: 'leg-press', name: 'Leg Press', sets: 3, repRange: '8-12', type: 'weight', load: { quads: .8, glutes: .5, hamstrings: .3 } },
@@ -284,7 +331,7 @@
       { id: 'w-hiit', type: 'hiit' },
       { id: 'w-clock', type: 'clock' }
     ],
-    settings: { theme: 'midnight', gymSuggestions: true }
+    settings: { theme: 'midnight', gymSuggestions: true, goals: DEFAULT_GOALS }
   };
 
   const DEFAULT_TEMPLATE_COLOR = 'var(--accent)';
@@ -293,30 +340,38 @@
     midnight: {
       label: 'Midnight',
       vars: { '--iron-900': '#17181c', '--iron-800': '#202126', '--iron-700': '#2a2b31', '--iron-600': '#3a3c44',
-        '--chalk': '#f2f0ea', '--chalk-dim': '#9a9ba3', '--accent': '#ec4899', '--green': '#6fbf73', '--danger': '#e5342b' }
+        '--chalk': '#f2f0ea', '--chalk-dim': '#9a9ba3', '--accent': '#ec4899', '--highlight': '#f5c344',
+        '--warmup-color': '#a78bfa', '--cardio-color': '#3fa9dc', '--green': '#6fbf73', '--danger': '#e5342b' }
     },
     earthy: {
       label: 'Earthy',
       vars: { '--iron-900': '#1d1712', '--iron-800': '#28201a', '--iron-700': '#392e24', '--iron-600': '#4f4030',
-        '--chalk': '#f1e6d6', '--chalk-dim': '#b6a68e', '--accent': '#c78a4d', '--green': '#8faa5f', '--danger': '#b2503c' }
+        '--chalk': '#f1e6d6', '--chalk-dim': '#b6a68e', '--accent': '#c78a4d', '--highlight': '#5fada0',
+        '--warmup-color': '#c9a227', '--cardio-color': '#7d9471', '--green': '#8faa5f', '--danger': '#b2503c' }
     },
     ocean: {
       label: 'Ocean',
       vars: { '--iron-900': '#10181f', '--iron-800': '#182430', '--iron-700': '#223342', '--iron-600': '#304757',
-        '--chalk': '#e8f1f5', '--chalk-dim': '#8fa8b8', '--accent': '#3fa9dc', '--green': '#5fb894', '--danger': '#e0574a' }
+        '--chalk': '#e8f1f5', '--chalk-dim': '#8fa8b8', '--accent': '#3fa9dc', '--highlight': '#f2884f',
+        '--warmup-color': '#8b93e0', '--cardio-color': '#4fd1a5', '--green': '#5fb894', '--danger': '#e0574a' }
     },
     forest: {
       label: 'Forest',
       vars: { '--iron-900': '#121912', '--iron-800': '#1a241a', '--iron-700': '#253625', '--iron-600': '#354d34',
-        '--chalk': '#eaf1e6', '--chalk-dim': '#9bb08e', '--accent': '#4f9d5c', '--green': '#8bc34a', '--danger': '#c1584a' }
+        '--chalk': '#eaf1e6', '--chalk-dim': '#9bb08e', '--accent': '#4f9d5c', '--highlight': '#e0a83c',
+        '--warmup-color': '#a893c9', '--cardio-color': '#5a9bc4', '--green': '#8bc34a', '--danger': '#c1584a' }
     }
   };
 
   function applyTheme(themeKey) {
     const theme = THEMES[themeKey] || THEMES.midnight;
-    Object.entries(theme.vars).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+    // Dev-only: per-theme color overrides tuned via the Color Tuner settings panel
+    // layer on top of the built-in palette so experiments persist across reloads.
+    const overrides = (data.settings && data.settings.themeOverrides && data.settings.themeOverrides[themeKey]) || {};
+    const merged = Object.assign({}, theme.vars, overrides);
+    Object.entries(merged).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme.vars['--iron-900']);
+    if (meta) meta.setAttribute('content', merged['--iron-900']);
   }
 
   const TEMPLATE_COLOR_OPTIONS = [
@@ -455,6 +510,54 @@
     return (tpl && tpl.category) || 'strength';
   }
 
+  function sessionCategory(s) {
+    if (s.category) return s.category;
+    if (s.freeform && s.freeformKey) {
+      const def = HOME_SECTIONS.find(d => d.freeform && d.freeform.key === s.freeformKey);
+      if (def) return def.key;
+    }
+    if (s.templateKey && data.templates[s.templateKey]) return getTemplateCategory(data.templates[s.templateKey]);
+    if (s.exercises && s.exercises[0]) {
+      const lib = getLibraryEx(s.exercises[0].exerciseId);
+      if (lib) return lib.category || 'strength';
+    }
+    return 'strength';
+  }
+
+  function getGoals() {
+    return (data.settings && data.settings.goals) || DEFAULT_GOALS;
+  }
+
+  function startOfWeek(d) {
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diff);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+
+  function countSessionsInRange(category, startMs, endMs) {
+    return data.sessions.filter(s => s.timestamp >= startMs && s.timestamp < endMs && sessionCategory(s) === category).length;
+  }
+
+  function weekMeetsGoals(weekStart) {
+    const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const goals = getGoals();
+    return Object.keys(goals).every(cat => countSessionsInRange(cat, weekStart.getTime(), weekEnd.getTime()) >= goals[cat]);
+  }
+
+  function computeStreak() {
+    let weekStart = startOfWeek(new Date());
+    weekStart = new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000); // last fully-completed week
+    let streak = 0;
+    while (weekMeetsGoals(weekStart)) {
+      streak++;
+      weekStart = new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+    return streak;
+  }
+
   const WIDGET_TYPE_DEFS = {
     resttimer: { label: 'Rest Timer', fullWidth: false, build: buildRestTimer },
     platecalc: { label: 'Plate Calculator', fullWidth: true, build: buildPlateCalcWidget },
@@ -466,7 +569,9 @@
   };
 
   let data = null;
-  let view = 'home';
+  let view = 'summary';
+  let historySubTab = 'trends';
+  let settingsSubTab = 'settings';
   let manageTab = 'core';
   let pickerOpenFor = null;
   let creatingNew = false;
@@ -537,6 +642,22 @@
       data.settings.gymSuggestions = true;
       persist();
     }
+    if (!data.settings.goals) {
+      data.settings.goals = DEFAULT_GOALS;
+      persist();
+    } else {
+      // Migrate the old {min,max} range shape down to a single target number.
+      let migrated = false;
+      Object.keys(data.settings.goals).forEach(cat => {
+        const g = data.settings.goals[cat];
+        if (g && typeof g === 'object') { data.settings.goals[cat] = g.min || 1; migrated = true; }
+      });
+      if (migrated) persist();
+    }
+    if (!data.settings.themeOverrides) {
+      data.settings.themeOverrides = {};
+      persist();
+    }
     if (!data.libraryMigratedV1) {
       DEFAULT_LIBRARY.forEach(def => {
         const existing = data.library.find(e => e.id === def.id);
@@ -552,8 +673,12 @@
       persist();
     }
     applyTheme(data.settings.theme);
-    if (data.draft && !data.draft.freeform) view = 'session';
-    if (data.draft && data.draft.freeform) homeOpenKey = data.draft.category + ':' + data.draft.freeformKey;
+    if (data.draft && !data.draft.freeform) {
+      const draftTpl = data.draft.templateKey && data.templates[data.draft.templateKey];
+      if (draftTpl) { homeOpenKey = getTemplateCategory(draftTpl) + ':tpl:' + data.draft.templateKey; view = 'home'; }
+      else view = 'session';
+    }
+    if (data.draft && data.draft.freeform) { homeOpenKey = data.draft.category + ':' + data.draft.freeformKey; view = 'home'; }
     render();
   }
 
@@ -764,8 +889,19 @@
     return best ? best.weight + 'lb x' + best.reps : null;
   }
 
-  function makeEmptySets(count) {
-    return Array.from({ length: count }, () => ({ weight: '', reps: '', seconds: '', distance: '', checked: false, intensity: '' }));
+  function makeEmptySets(count, defaults) {
+    const d = defaults || {};
+    return Array.from({ length: count }, () => ({
+      weight: d.weight || '', reps: d.reps || '', seconds: d.seconds || '',
+      distance: d.distance || '', checked: false, intensity: d.intensity || ''
+    }));
+  }
+
+  function rememberExerciseDefault(exerciseId, field, value) {
+    const lib = getLibraryEx(exerciseId);
+    if (!lib) return;
+    if (!lib.defaults) lib.defaults = {};
+    lib.defaults[field] = value;
   }
 
   function groupKeyFor(type, s) {
@@ -800,6 +936,12 @@
       scheduleSave();
     }
 
+    // Only the exercise's default (first) group updates the remembered default —
+    // a deliberately different second group (e.g. a drop set) shouldn't overwrite it.
+    function rememberIfFirst(field, value) {
+      if (isFirst) rememberExerciseDefault(ex.exerciseId, field, value);
+    }
+
     if (type === 'timed') {
       row.style.gridTemplateColumns = '1fr 1fr 1.3fr 28px';
       const totalSec = rep.seconds ? Math.max(0, Math.round(parseFloat(rep.seconds) || 0)) : null;
@@ -813,26 +955,27 @@
         const m = parseInt(minInput.value) || 0;
         const sc = parseInt(secInput.value) || 0;
         applyToGroup(st => { st.seconds = m * 60 + sc; });
+        rememberIfFirst('seconds', m * 60 + sc);
       };
       minInput.addEventListener('input', commit);
       secInput.addEventListener('input', commit);
       const timeFields = row.querySelectorAll('.wt-field');
-      attachNumberSwipe(timeFields[0], { step: 1, onChange: (v) => applyToGroup(st => { st.seconds = (parseInt(v) || 0) * 60 + (parseInt(secInput.value) || 0); }) });
-      attachNumberSwipe(timeFields[1], { step: 1, onChange: (v) => applyToGroup(st => { st.seconds = (parseInt(minInput.value) || 0) * 60 + (parseInt(v) || 0); }) });
+      attachNumberSwipe(timeFields[0], { step: 1, onChange: (v) => { const sec = (parseInt(v) || 0) * 60 + (parseInt(secInput.value) || 0); applyToGroup(st => { st.seconds = sec; }); rememberIfFirst('seconds', sec); } });
+      attachNumberSwipe(timeFields[1], { step: 1, onChange: (v) => { const sec = (parseInt(minInput.value) || 0) * 60 + (parseInt(v) || 0); applyToGroup(st => { st.seconds = sec; }); rememberIfFirst('seconds', sec); } });
     } else if (type === 'bodyweight') {
       row.style.gridTemplateColumns = '1fr 1.3fr 28px';
       row.innerHTML = `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${rep.reps || ''}" data-role="reps" /><span class="wt-unit">reps</span></div>`;
-      row.querySelector('[data-role="reps"]').addEventListener('input', (e) => applyToGroup(st => { st.reps = e.target.value; }));
-      attachNumberSwipe(row.querySelector('.wt-field'), { step: 1, onChange: (v) => applyToGroup(st => { st.reps = v; }) });
+      row.querySelector('[data-role="reps"]').addEventListener('input', (e) => { applyToGroup(st => { st.reps = e.target.value; }); rememberIfFirst('reps', e.target.value); });
+      attachNumberSwipe(row.querySelector('.wt-field'), { step: 1, onChange: (v) => { applyToGroup(st => { st.reps = v; }); rememberIfFirst('reps', v); } });
     } else {
       row.style.gridTemplateColumns = '1fr 1fr 1.3fr 28px';
       row.innerHTML = `<div class="wt-field"><input type="number" inputmode="decimal" placeholder="0" value="${rep.weight || ''}" data-role="weight" /><span class="wt-unit">lbs</span></div>
         <div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${rep.reps || ''}" data-role="reps" /><span class="wt-unit">reps</span></div>`;
-      row.querySelector('[data-role="weight"]').addEventListener('input', (e) => applyToGroup(st => { st.weight = e.target.value; }));
-      row.querySelector('[data-role="reps"]').addEventListener('input', (e) => applyToGroup(st => { st.reps = e.target.value; }));
+      row.querySelector('[data-role="weight"]').addEventListener('input', (e) => { applyToGroup(st => { st.weight = e.target.value; }); rememberIfFirst('weight', e.target.value); });
+      row.querySelector('[data-role="reps"]').addEventListener('input', (e) => { applyToGroup(st => { st.reps = e.target.value; }); rememberIfFirst('reps', e.target.value); });
       const fields = row.querySelectorAll('.wt-field');
-      attachNumberSwipe(fields[0], { step: 2.5, onChange: (v) => applyToGroup(st => { st.weight = v; }) });
-      attachNumberSwipe(fields[1], { step: 1, onChange: (v) => applyToGroup(st => { st.reps = v; }) });
+      attachNumberSwipe(fields[0], { step: 2.5, onChange: (v) => { applyToGroup(st => { st.weight = v; }); rememberIfFirst('weight', v); } });
+      attachNumberSwipe(fields[1], { step: 1, onChange: (v) => { applyToGroup(st => { st.reps = v; }); rememberIfFirst('reps', v); } });
     }
 
     const stepper = document.createElement('div');
@@ -890,6 +1033,7 @@
   }
 
   function startSession(templateKey) {
+    if (data.draft) { showToast('Finish or discard your current session first'); return false; }
     const tpl = data.templates[templateKey];
     const exercises = tpl.exerciseIds.map(id => {
       const lib = getLibraryEx(id);
@@ -898,15 +1042,14 @@
         exerciseId: id,
         name: lib.name,
         type,
-        sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', distance: '', checked: false, intensity: '' }] : makeEmptySets(lib.sets)
+        sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', distance: '', checked: false, intensity: '' }] : makeEmptySets(lib.sets, lib.defaults)
       };
       if (type === 'custom') ex.fields = lib.fields;
       return ex;
     });
     data.draft = { templateKey, templateName: tpl.name, startedAt: Date.now(), notes: '', exercises };
     scheduleSave();
-    view = 'session';
-    render();
+    return true;
   }
 
   function duplicateSessionAsDraft(session) {
@@ -925,8 +1068,17 @@
       }))
     };
     scheduleSave();
-    view = 'session';
     historyExpanded = null;
+    const tpl = session.templateKey && data.templates[session.templateKey];
+    if (tpl) {
+      homeOpenKey = getTemplateCategory(tpl) + ':tpl:' + session.templateKey;
+      view = 'home';
+    } else {
+      // No matching template (e.g. the original session was later deleted, or was
+      // freeform) — there's no home chip to accordion into, so fall back to the
+      // standalone session screen.
+      view = 'session';
+    }
     render();
   }
 
@@ -990,7 +1142,7 @@
       exerciseId,
       name: lib.name,
       type,
-      sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', distance: '', checked: false, intensity: '' }] : makeEmptySets(lib.sets)
+      sets: type === 'checkbox' ? [{ weight: '', reps: '', seconds: '', distance: '', checked: false, intensity: '' }] : makeEmptySets(lib.sets, lib.defaults)
     };
     if (type === 'custom') ex.fields = lib.fields;
     data.draft.exercises.push(ex);
@@ -1096,14 +1248,22 @@
           if (Math.abs(scroller.scrollTop - expected) > 1) scroller.scrollTop = expected;
           return;
         }
-        const idx = Math.round(scroller.scrollTop / itemHeight);
-        currentIndex = Math.max(0, Math.min(items.length - 1, idx));
+        const idx = Math.max(0, Math.min(items.length - 1, Math.round(scroller.scrollTop / itemHeight)));
+        // Only notify on an actual change — a settle that lands back on the same
+        // index (e.g. the initial mount scroll) must not re-fire onChange, since
+        // callers that re-render on change would otherwise loop forever.
+        if (idx === currentIndex) { updateActiveClasses(); return; }
+        currentIndex = idx;
         updateActiveClasses();
         if (opts.onChange) opts.onChange(items[currentIndex].value, currentIndex);
       }, 120);
     });
 
-    requestAnimationFrame(() => { scroller.scrollTop = currentIndex * itemHeight; updateActiveClasses(); });
+    requestAnimationFrame(() => {
+      suppressNextSettle = true;
+      scroller.scrollTop = currentIndex * itemHeight;
+      updateActiveClasses();
+    });
 
     wrap.getValue = () => items[currentIndex] ? items[currentIndex].value : null;
     return wrap;
@@ -1152,18 +1312,22 @@
     return wrap;
   }
 
-  function buildLibraryPage() {
+  function buildLibraryPage(embedded) {
     const wrap = document.createElement('div');
-    const back = document.createElement('button');
-    back.className = 'wt-back-btn';
-    back.textContent = '← Back';
-    back.onclick = () => { view = 'home'; libraryPickerMode = null; render(); };
-    wrap.appendChild(back);
+    if (!embedded) {
+      const back = document.createElement('button');
+      back.className = 'wt-back-btn';
+      back.textContent = '← Back';
+      back.onclick = () => { view = 'home'; libraryPickerMode = null; render(); };
+      wrap.appendChild(back);
+    }
 
-    const title = document.createElement('div');
-    title.className = 'wt-manage-section-title';
-    title.textContent = 'Exercise Library';
-    wrap.appendChild(title);
+    if (!embedded) {
+      const title = document.createElement('div');
+      title.className = 'wt-manage-section-title';
+      title.textContent = 'Exercise Library';
+      wrap.appendChild(title);
+    }
 
     if (libraryPickerMode === 'catalog') {
       wrap.appendChild(buildCatalogPicker(
@@ -1247,29 +1411,33 @@
     row.className = 'wt-set-row';
     row.style.gridTemplateColumns = Array(colCount).fill('1fr').join(' ');
 
+    const defaults = lib.defaults || {};
+    const defMin = defaults.seconds ? Math.floor((parseInt(defaults.seconds) || 0) / 60) : '';
+    const defSec = defaults.seconds ? (parseInt(defaults.seconds) || 0) % 60 : '';
+
     let html = '';
     valueFields.forEach(f => {
       if (f === 'time') {
-        html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" data-role="min" /><span class="wt-unit">min</span></div>`;
-        html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" data-role="sec" /><span class="wt-unit">sec</span></div>`;
+        html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${defMin}" data-role="min" /><span class="wt-unit">min</span></div>`;
+        html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${defSec}" data-role="sec" /><span class="wt-unit">sec</span></div>`;
       } else if (f === 'distance') {
-        html += `<div class="wt-field"><input type="number" inputmode="decimal" placeholder="0.0" data-role="distance" /><span class="wt-unit">mi</span></div>`;
+        html += `<div class="wt-field"><input type="number" inputmode="decimal" placeholder="0.0" value="${defaults.distance || ''}" data-role="distance" /><span class="wt-unit">mi</span></div>`;
       } else if (f === 'weight') {
-        html += `<div class="wt-field"><input type="number" inputmode="decimal" placeholder="0" data-role="weight" /><span class="wt-unit">lbs</span></div>`;
+        html += `<div class="wt-field"><input type="number" inputmode="decimal" placeholder="0" value="${defaults.weight || ''}" data-role="weight" /><span class="wt-unit">lbs</span></div>`;
       } else if (f === 'reps') {
-        html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" data-role="reps" /><span class="wt-unit">reps</span></div>`;
+        html += `<div class="wt-field"><input type="number" inputmode="numeric" placeholder="0" value="${defaults.reps || ''}" data-role="reps" /><span class="wt-unit">reps</span></div>`;
       }
     });
     row.innerHTML = html;
     wrap.appendChild(row);
 
-    let intensityVal = '';
+    let intensityVal = defaults.intensity || '';
     let intensityField = null;
     if (fields.includes('intensity')) {
       intensityField = document.createElement('div');
       intensityField.className = 'wt-intensity-field';
       intensityField.style.marginTop = '8px';
-      intensityField.innerHTML = [1, 2, 3, 4, 5].map(n => `<button type="button" data-val="${n}" class="wt-intensity-btn">${n}</button>`).join('')
+      intensityField.innerHTML = [1, 2, 3, 4, 5].map(n => `<button type="button" data-val="${n}" class="wt-intensity-btn${String(n) === String(intensityVal) ? ' active' : ''}">${n}</button>`).join('')
         + '<span class="wt-intensity-label">Intensity 1–5</span>';
       wrap.appendChild(intensityField);
       intensityField.querySelectorAll('button').forEach(btn => {
@@ -1302,7 +1470,10 @@
       if (weightInput) values.weight = weightInput.value;
       const repsInput = row.querySelector('[data-role="reps"]');
       if (repsInput) values.reps = repsInput.value;
-      if (logQuickExercise(lib.id, values)) { homeOpenKey = null; render(); }
+      if (logQuickExercise(lib.id, values)) {
+        Object.keys(values).forEach(f => { if (values[f] !== '' && values[f] != null) rememberExerciseDefault(lib.id, f, values[f]); });
+        homeOpenKey = null; render();
+      }
     };
     actions.appendChild(cancelBtn);
     actions.appendChild(saveBtn);
@@ -1311,7 +1482,7 @@
     return wrap;
   }
 
-  function buildFreeformInlinePanel(draft) {
+  function buildDraftInlinePanel(draft, color) {
     const wrap = document.createElement('div');
     const headRow = document.createElement('div');
     headRow.style.cssText = 'display:flex; justify-content:flex-end; margin-bottom:8px;';
@@ -1322,7 +1493,7 @@
     headRow.appendChild(discardBtn);
     wrap.appendChild(headRow);
 
-    wrap.appendChild(buildDraftBody(draft, 'var(--accent)'));
+    wrap.appendChild(buildDraftBody(draft, color || 'var(--accent)'));
     return wrap;
   }
 
@@ -1400,22 +1571,22 @@
   function render() {
     openSwipes.clear();
     root.innerHTML = '';
+    root.classList.toggle('has-bottomnav', TAB_VIEWS.includes(view));
     root.appendChild(buildHeader());
-    if (view === 'home') root.appendChild(buildHome());
+    if (view === 'summary') root.appendChild(buildSummaryPage());
+    else if (view === 'home') root.appendChild(buildHome());
     else if (view === 'session') root.appendChild(buildSession());
-    else if (view === 'manage') root.appendChild(buildManage());
-    else if (view === 'history') root.appendChild(buildHistory());
-    else if (view === 'trends') root.appendChild(buildTrendsPage());
-    else if (view === 'calendar') root.appendChild(buildCalendarPage());
+    else if (view === 'historyhub') root.appendChild(buildHistoryHub());
+    else if (view === 'settingshub') root.appendChild(buildSettingsHub());
     else if (view === 'widgets') root.appendChild(buildWidgetsScreen());
-    else if (view === 'settings') root.appendChild(buildSettingsPage());
-    else if (view === 'library') root.appendChild(buildLibraryPage());
-    if (view !== 'widgets' && view !== 'settings') root.appendChild(buildWidgetsFab());
+    else if (view === 'fatigue') root.appendChild(buildFatiguePage());
+    if (view !== 'widgets' && view !== 'settingshub') root.appendChild(buildWidgetsFab());
+    if (TAB_VIEWS.includes(view)) root.appendChild(buildBottomNav());
   }
 
   function buildWidgetsFab() {
     const btn = document.createElement('button');
-    btn.className = 'wt-widgets-fab';
+    btn.className = 'wt-widgets-fab' + (TAB_VIEWS.includes(view) ? ' raised' : '');
     btn.title = 'Widgets';
     btn.innerHTML = '<span></span><span></span><span></span><span></span>';
     btn.onclick = () => { widgetsPreviousView = view; expandedWidgetId = null; view = 'widgets'; render(); };
@@ -1651,6 +1822,54 @@
     return h;
   }
 
+  const TAB_VIEWS = ['summary', 'home', 'historyhub', 'settingshub'];
+
+  const NAV_ICON_SVGS = {
+    summary: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="12" width="3.6" height="8" rx="1.1"/><rect x="10.2" y="6.5" width="3.6" height="13.5" rx="1.1"/><rect x="16.4" y="3" width="3.6" height="17" rx="1.1"/></svg>',
+    home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 8v8M8 12h8"/></svg>',
+    historyhub: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5l5.2-6 4 4.2L20 6"/><path d="M14.6 6h5.4v5.4"/></svg>',
+    settingshub: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.3"/><circle cx="12" cy="12" r="7.6" stroke-dasharray="2.1 2.5"/></svg>'
+  };
+
+  const BOTTOM_NAV_TABS = [
+    { key: 'summary', label: 'Summary' },
+    { key: 'home', label: 'Log' },
+    { key: 'historyhub', label: 'Trends' },
+    { key: 'settingshub', label: 'Settings' }
+  ];
+
+  function goToTab(key) {
+    view = key;
+    homeOpenKey = null;
+    render();
+  }
+
+  function buildBottomNav() {
+    const nav = document.createElement('div');
+    nav.className = 'wt-bottom-nav';
+    BOTTOM_NAV_TABS.forEach(tab => {
+      const btn = document.createElement('button');
+      btn.className = 'wt-bottom-nav-btn' + (view === tab.key ? ' active' : '');
+      btn.innerHTML = `<span class="wt-bottom-nav-btn-icon">${NAV_ICON_SVGS[tab.key]}</span><span>${escapeHtml(tab.label)}</span>`;
+      btn.onclick = () => goToTab(tab.key);
+      nav.appendChild(btn);
+    });
+    return nav;
+  }
+
+  function buildSegmentedNav(options, current, onSelect) {
+    const row = document.createElement('div');
+    row.className = 'wt-segmented';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'wt-btn wt-btn-sm ' + (current === opt.key ? 'wt-btn-selected' : 'wt-btn-ghost');
+      btn.textContent = opt.label;
+      btn.onclick = () => onSelect(opt.key);
+      row.appendChild(btn);
+    });
+    return row;
+  }
+
   const HOME_SECTIONS = [
     { key: 'warmup', title: 'Warm Up', hint: 'qi gong · stretch · home workout', freeform: { key: 'homeworkout', label: 'Home Workout' } },
     { key: 'cardio', title: 'Cardio', hint: 'walk · skate · run', freeform: null },
@@ -1714,12 +1933,24 @@
 
     homeSectionTemplates(def.key).forEach(tplKey => {
       const tpl = data.templates[tplKey];
+      const tplOpenKey = def.key + ':tpl:' + tplKey;
       const done = hasLoggedToday(s => s.templateKey === tplKey);
+      const inProgress = !!(data.draft && !data.draft.freeform && data.draft.templateKey === tplKey);
       const chip = document.createElement('button');
-      chip.className = 'wt-home-chip session' + (done ? ' done' : '');
+      chip.className = 'wt-home-chip session' + (done ? ' done' : '') + (homeOpenKey === tplOpenKey ? ' expanded' : '') + (inProgress ? ' in-progress' : '');
       chip.style.setProperty('--hs-color', getTemplateColor(tpl));
       chip.innerHTML = `<span class="wt-home-chip-check">✓</span><span class="wt-home-chip-label">${escapeHtml(tpl.name)}</span>`;
-      chip.onclick = () => startSession(tplKey);
+      chip.onclick = () => {
+        if (homeOpenKey === tplOpenKey) { homeOpenKey = null; render(); return; }
+        if (!data.draft) {
+          if (!startSession(tplKey)) return;
+        } else if (!(!data.draft.freeform && data.draft.templateKey === tplKey)) {
+          showToast('Finish or discard your current session first');
+          return;
+        }
+        homeOpenKey = tplOpenKey;
+        render();
+      };
       chipRow.appendChild(chip);
     });
 
@@ -1728,7 +1959,7 @@
     addChip.className = 'wt-home-chip add';
     addChip.innerHTML = `<span class="wt-home-chip-label">+ Add</span>`;
     addChip.onclick = () => {
-      if (def.key === 'strength') { view = 'manage'; render(); return; }
+      if (def.key === 'strength') { view = 'settingshub'; settingsSubTab = 'templates'; render(); return; }
       homeOpenKey = (homeOpenKey === addKey) ? null : addKey;
       render();
     };
@@ -1751,12 +1982,18 @@
           () => { homeOpenKey = null; render(); },
           { initial: { name: '', type: 'custom', sets: 1, repRange: '' }, saveLabel: 'Add' }
         ));
+      } else if (subKey.indexOf('tpl:') === 0) {
+        const tplKey = subKey.slice(4);
+        if (data.draft && !data.draft.freeform && data.draft.templateKey === tplKey) {
+          const tpl = data.templates[tplKey];
+          panel.appendChild(buildDraftInlinePanel(data.draft, tpl ? getTemplateColor(tpl) : 'var(--accent)'));
+        }
       } else {
         const lib = getLibraryEx(subKey);
         if (lib) {
           panel.appendChild(buildQuickLogPanel(lib));
         } else if (data.draft && data.draft.freeform && data.draft.freeformKey === subKey) {
-          panel.appendChild(buildFreeformInlinePanel(data.draft));
+          panel.appendChild(buildDraftInlinePanel(data.draft));
         }
       }
       section.appendChild(panel);
@@ -1770,43 +2007,6 @@
 
     HOME_SECTIONS.forEach(def => wrap.appendChild(buildHomeSection(def)));
 
-    const navGrid = document.createElement('div');
-    navGrid.className = 'wt-nav-grid';
-    navGrid.style.marginTop = '8px';
-    const histBtn = document.createElement('button');
-    histBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
-    histBtn.textContent = 'History';
-    histBtn.onclick = () => { view = 'history'; historyExpanded = null; render(); };
-    const trendsBtn = document.createElement('button');
-    trendsBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
-    trendsBtn.textContent = 'Trends';
-    trendsBtn.onclick = () => { view = 'trends'; render(); };
-    const calBtn = document.createElement('button');
-    calBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
-    calBtn.textContent = 'Calendar';
-    calBtn.onclick = () => { view = 'calendar'; render(); };
-    const manageBtn = document.createElement('button');
-    manageBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
-    manageBtn.textContent = 'Edit Templates';
-    manageBtn.onclick = () => { view = 'manage'; render(); };
-    const libraryBtn = document.createElement('button');
-    libraryBtn.className = 'wt-btn wt-btn-ghost wt-btn-full';
-    libraryBtn.textContent = 'Exercise Library';
-    libraryBtn.onclick = () => { view = 'library'; libraryPickerMode = null; render(); };
-    navGrid.appendChild(histBtn);
-    navGrid.appendChild(trendsBtn);
-    navGrid.appendChild(calBtn);
-    navGrid.appendChild(manageBtn);
-    navGrid.appendChild(libraryBtn);
-    wrap.appendChild(navGrid);
-
-    const settingsBtn = document.createElement('button');
-    settingsBtn.className = 'wt-btn wt-btn-ghost wt-btn-full wt-settings-btn';
-    settingsBtn.style.marginTop = '8px';
-    settingsBtn.innerHTML = '⚙️ Settings';
-    settingsBtn.onclick = () => { view = 'settings'; render(); };
-    wrap.appendChild(settingsBtn);
-
     if (data.sessions.length > 0) {
       const last = data.sessions[data.sessions.length - 1];
       const note = document.createElement('div');
@@ -1819,13 +2019,173 @@
     return wrap;
   }
 
-  function buildSettingsPage() {
+  function buildFatiguePage() {
     const wrap = document.createElement('div');
     const back = document.createElement('button');
     back.className = 'wt-back-btn';
     back.textContent = '← Back';
-    back.onclick = () => { view = 'home'; render(); };
+    back.onclick = () => { view = 'summary'; render(); };
     wrap.appendChild(back);
+
+    const title = document.createElement('div');
+    title.className = 'wt-manage-section-title';
+    title.textContent = 'Muscle Fatigue';
+    wrap.appendChild(title);
+
+    const hint = document.createElement('div');
+    hint.className = 'wt-sub';
+    hint.style.marginBottom = '16px';
+    hint.textContent = 'Recent training load per muscle group from the last ~7 days, weighted toward the most recent sessions. This is what feeds Gym Suggestions.';
+    wrap.appendChild(hint);
+
+    const recentLoad = computeRecentLoad();
+    const entries = BUCKETS.filter(b => b !== 'cardio').map(b => ({ bucket: b, val: recentLoad[b] || 0 })).sort((a, b) => b.val - a.val);
+    const maxVal = Math.max(...entries.map(e => e.val), 0.0001);
+
+    if (entries.every(e => e.val === 0)) {
+      const empty = document.createElement('div');
+      empty.className = 'wt-empty';
+      empty.textContent = 'No recent training load yet — log a few tagged exercises to see this fill in.';
+      wrap.appendChild(empty);
+      return wrap;
+    }
+
+    entries.forEach(({ bucket, val }) => {
+      const pct = Math.round((val / maxVal) * 100);
+      const row = document.createElement('div');
+      row.className = 'wt-fatigue-row';
+      row.innerHTML = `<span class="wt-fatigue-label">${escapeHtml(bucket)}</span>
+        <div class="wt-fatigue-track"><div class="wt-fatigue-fill" style="width:${pct}%"></div></div>
+        <span class="wt-fatigue-val">${pct}%</span>`;
+      wrap.appendChild(row);
+    });
+
+    return wrap;
+  }
+
+  function buildSummaryPage() {
+    const wrap = document.createElement('div');
+
+    // Streak
+    const streak = computeStreak();
+    const streakCard = document.createElement('div');
+    streakCard.className = 'wt-summary-card';
+    streakCard.innerHTML = `<div class="wt-streak-row">
+        <span class="wt-streak-num">${streak}</span>
+        <span class="wt-streak-label">${streak === 1 ? 'week' : 'weeks'} hitting your goals${streak === 0 ? ' — get one going this week' : ' in a row'}</span>
+      </div>`;
+    wrap.appendChild(streakCard);
+
+    // This week's goal progress
+    const goals = getGoals();
+    const weekStart = startOfWeek(new Date()).getTime();
+    const goalsCard = document.createElement('div');
+    goalsCard.className = 'wt-summary-card';
+    goalsCard.innerHTML = `<div class="wt-summary-card-title">This Week</div>`;
+    HOME_SECTIONS.forEach(def => {
+      const goal = goals[def.key];
+      if (goal == null) return;
+      const count = countSessionsInRange(def.key, weekStart, Date.now() + 1);
+      const met = count >= goal;
+      const row = document.createElement('div');
+      row.className = 'wt-goal-row';
+      row.innerHTML = `<span class="wt-goal-row-label">${escapeHtml(def.title)}</span>
+        <span class="wt-goal-pill${met ? ' met' : ''}">${count} / ${goal}</span>`;
+      goalsCard.appendChild(row);
+    });
+    wrap.appendChild(goalsCard);
+
+    // Last 30 days stats
+    const monthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const monthSessions = data.sessions.filter(s => s.timestamp >= monthAgo);
+    const statsCard = document.createElement('div');
+    statsCard.className = 'wt-summary-card';
+    statsCard.innerHTML = `<div class="wt-summary-card-title">Last 30 Days</div>`;
+    const statRow = document.createElement('div');
+    statRow.className = 'wt-summary-stat-row';
+    HOME_SECTIONS.concat([{ key: 'total', title: 'Total' }]).forEach(def => {
+      const count = def.key === 'total' ? monthSessions.length : monthSessions.filter(s => sessionCategory(s) === def.key).length;
+      const stat = document.createElement('div');
+      stat.className = 'wt-summary-stat';
+      stat.innerHTML = `<div class="wt-summary-stat-num">${count}</div><div class="wt-summary-stat-label">${escapeHtml(def.title)}</div>`;
+      statRow.appendChild(stat);
+    });
+    statsCard.appendChild(statRow);
+    wrap.appendChild(statsCard);
+
+    // Mini fatigue snapshot
+    const recentLoad = computeRecentLoad();
+    const fatigueEntries = BUCKETS.filter(b => b !== 'cardio').map(b => ({ bucket: b, val: recentLoad[b] || 0 })).sort((a, b) => b.val - a.val).slice(0, 4);
+    const maxFatigue = Math.max(...fatigueEntries.map(e => e.val), 0.0001);
+    if (fatigueEntries.some(e => e.val > 0)) {
+      const fatigueCard = document.createElement('div');
+      fatigueCard.className = 'wt-summary-card';
+      fatigueCard.innerHTML = `<div class="wt-summary-card-title">Muscle Fatigue</div>`;
+      fatigueEntries.forEach(({ bucket, val }) => {
+        const pct = Math.round((val / maxFatigue) * 100);
+        const row = document.createElement('div');
+        row.className = 'wt-fatigue-row';
+        row.innerHTML = `<span class="wt-fatigue-label">${escapeHtml(bucket)}</span>
+          <div class="wt-fatigue-track"><div class="wt-fatigue-fill" style="width:${pct}%"></div></div>
+          <span class="wt-fatigue-val">${pct}%</span>`;
+        fatigueCard.appendChild(row);
+      });
+      const seeAll = document.createElement('button');
+      seeAll.className = 'wt-btn wt-btn-ghost wt-btn-sm';
+      seeAll.style.marginTop = '6px';
+      seeAll.textContent = 'See full breakdown →';
+      seeAll.onclick = () => { view = 'fatigue'; render(); };
+      fatigueCard.appendChild(seeAll);
+      wrap.appendChild(fatigueCard);
+    }
+
+    // Recent sessions
+    const recentCard = document.createElement('div');
+    recentCard.className = 'wt-summary-card';
+    recentCard.innerHTML = `<div class="wt-summary-card-title">Recent Sessions</div>`;
+    const recent = [...data.sessions].sort((a, b) => b.timestamp - a.timestamp).slice(0, 6);
+    if (recent.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'wt-empty';
+      empty.textContent = 'Nothing logged yet — head to the Log tab to get started.';
+      recentCard.appendChild(empty);
+    } else {
+      recent.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'wt-recent-row';
+        row.innerHTML = `<span class="wt-recent-row-name">${escapeHtml(s.templateName)}</span><span class="wt-recent-row-date">${new Date(s.timestamp).toLocaleDateString()}</span>`;
+        recentCard.appendChild(row);
+      });
+    }
+    wrap.appendChild(recentCard);
+
+    return wrap;
+  }
+
+  const SETTINGS_HUB_TABS = [
+    { key: 'settings', label: 'App Settings' },
+    { key: 'templates', label: 'Templates' },
+    { key: 'library', label: 'Exercise Library' }
+  ];
+
+  function buildSettingsHub() {
+    const wrap = document.createElement('div');
+    wrap.appendChild(buildSegmentedNav(SETTINGS_HUB_TABS, settingsSubTab, (key) => { settingsSubTab = key; render(); }));
+    if (settingsSubTab === 'settings') wrap.appendChild(buildSettingsPage(true));
+    else if (settingsSubTab === 'templates') wrap.appendChild(buildManage(true));
+    else wrap.appendChild(buildLibraryPage(true));
+    return wrap;
+  }
+
+  function buildSettingsPage(embedded) {
+    const wrap = document.createElement('div');
+    if (!embedded) {
+      const back = document.createElement('button');
+      back.className = 'wt-back-btn';
+      back.textContent = '← Back';
+      back.onclick = () => { view = 'home'; render(); };
+      wrap.appendChild(back);
+    }
 
     const label = document.createElement('div');
     label.className = 'wt-settings-label';
@@ -1856,6 +2216,66 @@
     });
     wrap.appendChild(grid);
 
+    // Dev-build-only: live color tuner for the currently selected theme. This
+    // panel and its underlying override plumbing intentionally live only in
+    // dev/index.html, not the production build.
+    const tunerLabel = document.createElement('div');
+    tunerLabel.className = 'wt-settings-label';
+    tunerLabel.textContent = 'Tune Colors (Dev Only)';
+    wrap.appendChild(tunerLabel);
+
+    const tunerHint = document.createElement('div');
+    tunerHint.className = 'wt-sub';
+    tunerHint.style.marginBottom = '8px';
+    tunerHint.textContent = 'Live-adjust "' + THEMES[currentTheme].label + '"’s colors. Changes persist on this device only.';
+    wrap.appendChild(tunerHint);
+
+    const TUNABLE_VARS = [
+      { key: '--iron-900', label: 'Background' },
+      { key: '--iron-800', label: 'Surface' },
+      { key: '--iron-700', label: 'Surface Alt' },
+      { key: '--iron-600', label: 'Border' },
+      { key: '--chalk', label: 'Text' },
+      { key: '--chalk-dim', label: 'Text Dim' },
+      { key: '--accent', label: 'Accent' },
+      { key: '--highlight', label: 'Highlight' },
+      { key: '--warmup-color', label: 'Warm Up' },
+      { key: '--cardio-color', label: 'Cardio' },
+      { key: '--green', label: 'Green' },
+      { key: '--danger', label: 'Danger' }
+    ];
+
+    if (!data.settings.themeOverrides[currentTheme]) data.settings.themeOverrides[currentTheme] = {};
+    const overrides = data.settings.themeOverrides[currentTheme];
+
+    const tunerGrid = document.createElement('div');
+    tunerGrid.className = 'wt-tuner-grid';
+    TUNABLE_VARS.forEach(({ key, label }) => {
+      const value = overrides[key] || THEMES[currentTheme].vars[key];
+      const row = document.createElement('label');
+      row.className = 'wt-tuner-row';
+      row.innerHTML = `<input type="color" value="${value}" /><span>${escapeHtml(label)}</span>`;
+      row.querySelector('input').addEventListener('input', (e) => {
+        overrides[key] = e.target.value;
+        applyTheme(currentTheme);
+        persist();
+      });
+      tunerGrid.appendChild(row);
+    });
+    wrap.appendChild(tunerGrid);
+
+    const resetTunerBtn = document.createElement('button');
+    resetTunerBtn.className = 'wt-btn wt-btn-ghost wt-btn-sm';
+    resetTunerBtn.style.marginBottom = '14px';
+    resetTunerBtn.textContent = 'Reset "' + THEMES[currentTheme].label + '" to Default';
+    resetTunerBtn.onclick = () => {
+      data.settings.themeOverrides[currentTheme] = {};
+      applyTheme(currentTheme);
+      persist();
+      render();
+    };
+    wrap.appendChild(resetTunerBtn);
+
     const gymLabel = document.createElement('div');
     gymLabel.className = 'wt-settings-label';
     gymLabel.textContent = 'Gym';
@@ -1875,11 +2295,37 @@
     };
     wrap.appendChild(suggestRow);
 
+    const goalsLabel = document.createElement('div');
+    goalsLabel.className = 'wt-settings-label';
+    goalsLabel.textContent = 'Weekly Goals';
+    wrap.appendChild(goalsLabel);
+
+    const goalsHint = document.createElement('div');
+    goalsHint.className = 'wt-sub';
+    goalsHint.style.marginBottom = '8px';
+    goalsHint.textContent = 'Target sessions per week for each category — drives the streak on the Summary tab.';
+    wrap.appendChild(goalsHint);
+
+    const goals = getGoals();
+    HOME_SECTIONS.forEach(def => {
+      if (goals[def.key] == null) return;
+      const row = document.createElement('div');
+      row.className = 'wt-goals-edit-row';
+      row.innerHTML = `<span class="wt-goal-row-label">${escapeHtml(def.title)}</span>
+        <span class="wt-goals-edit-input-group"><input type="number" inputmode="numeric" min="0" value="${goals[def.key]}" data-role="target" /><span class="wt-sub">/ week</span></span>`;
+      const targetInput = row.querySelector('[data-role="target"]');
+      targetInput.addEventListener('input', () => {
+        goals[def.key] = Math.max(0, parseInt(targetInput.value) || 0);
+        persist();
+      });
+      wrap.appendChild(row);
+    });
+
     return wrap;
   }
 
   function buildSuggestionStrip(draft) {
-    const suggestions = computeGymSuggestions(draft.exercises, 3);
+    const suggestions = computeGymSuggestions(draft.exercises, 3, draft.workoutFocus);
     if (suggestions.length === 0) return document.createDocumentFragment();
 
     const wrap = document.createElement('div');
@@ -1900,8 +2346,33 @@
     return wrap;
   }
 
+  function buildWorkoutFocusPicker(draft) {
+    const wrap = document.createElement('div');
+    wrap.className = 'wt-card';
+    const label = document.createElement('div');
+    label.className = 'wt-manage-section-title';
+    label.textContent = 'Focus';
+    wrap.appendChild(label);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; gap:6px; flex-wrap:wrap;';
+    const current = draft.workoutFocus || 'fullbody';
+    WORKOUT_FOCUS_OPTIONS.forEach(opt => {
+      const b = document.createElement('button');
+      b.className = 'wt-btn wt-btn-sm ' + (current === opt.key ? 'wt-btn-selected' : 'wt-btn-ghost');
+      b.textContent = opt.label;
+      b.onclick = () => { draft.workoutFocus = opt.key; scheduleSave(); render(); };
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
   function buildDraftBody(draft, tplColor) {
     const wrap = document.createElement('div');
+
+    if (draft.freeform && draft.freeformKey === 'blank' && data.settings.gymSuggestions) {
+      wrap.appendChild(buildWorkoutFocusPicker(draft));
+    }
 
     draft.exercises.forEach((ex, exIdx) => {
       wrap.appendChild(buildSessionExerciseCard(ex, exIdx));
@@ -2492,7 +2963,6 @@
     const type = ex.type || 'weight';
     const lib = getLibraryEx(ex.exerciseId);
     const lastDisplay = findLastLoggedDisplay(ex.exerciseId);
-    const lastEx = getLastLoggedExercise(ex.exerciseId);
 
     const card = document.createElement('div');
     card.className = 'wt-card wt-swipe-content';
@@ -2564,20 +3034,23 @@
         });
         row.innerHTML = html;
 
+        // Only the first set row updates the exercise's remembered default.
+        const rememberIfFirst = (field, value) => { if (i === 0) rememberExerciseDefault(ex.exerciseId, field, value); };
+
         const weightInput = row.querySelector('[data-role="weight"]');
         if (weightInput) {
-          weightInput.addEventListener('input', (e) => { ex.sets[i].weight = e.target.value; scheduleSave(); });
-          attachNumberSwipe(weightInput.closest('.wt-field'), { step: 2.5, onChange: (v) => { ex.sets[i].weight = v; scheduleSave(); } });
+          weightInput.addEventListener('input', (e) => { ex.sets[i].weight = e.target.value; scheduleSave(); rememberIfFirst('weight', e.target.value); });
+          attachNumberSwipe(weightInput.closest('.wt-field'), { step: 2.5, onChange: (v) => { ex.sets[i].weight = v; scheduleSave(); rememberIfFirst('weight', v); } });
         }
         const repsInput = row.querySelector('[data-role="reps"]');
         if (repsInput) {
-          repsInput.addEventListener('input', (e) => { ex.sets[i].reps = e.target.value; scheduleSave(); });
-          attachNumberSwipe(repsInput.closest('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].reps = v; scheduleSave(); } });
+          repsInput.addEventListener('input', (e) => { ex.sets[i].reps = e.target.value; scheduleSave(); rememberIfFirst('reps', e.target.value); });
+          attachNumberSwipe(repsInput.closest('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].reps = v; scheduleSave(); rememberIfFirst('reps', v); } });
         }
         const distanceInput = row.querySelector('[data-role="distance"]');
         if (distanceInput) {
-          distanceInput.addEventListener('input', (e) => { ex.sets[i].distance = e.target.value; scheduleSave(); });
-          attachNumberSwipe(distanceInput.closest('.wt-field'), { step: 0.1, onChange: (v) => { ex.sets[i].distance = v; scheduleSave(); } });
+          distanceInput.addEventListener('input', (e) => { ex.sets[i].distance = e.target.value; scheduleSave(); rememberIfFirst('distance', e.target.value); });
+          attachNumberSwipe(distanceInput.closest('.wt-field'), { step: 0.1, onChange: (v) => { ex.sets[i].distance = v; scheduleSave(); rememberIfFirst('distance', v); } });
         }
         const minInput = row.querySelector('[data-role="min"]');
         const secInput = row.querySelector('[data-role="sec"]');
@@ -2587,11 +3060,12 @@
             const sc = parseInt(secInput.value) || 0;
             ex.sets[i].seconds = m * 60 + sc;
             scheduleSave();
+            rememberIfFirst('seconds', m * 60 + sc);
           };
           minInput.addEventListener('input', commitTime);
           secInput.addEventListener('input', commitTime);
-          attachNumberSwipe(minInput.closest('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].seconds = (parseInt(v) || 0) * 60 + (parseInt(secInput.value) || 0); scheduleSave(); } });
-          attachNumberSwipe(secInput.closest('.wt-field'), { step: 1, onChange: (v) => { ex.sets[i].seconds = (parseInt(minInput.value) || 0) * 60 + (parseInt(v) || 0); scheduleSave(); } });
+          attachNumberSwipe(minInput.closest('.wt-field'), { step: 1, onChange: (v) => { const sec = (parseInt(v) || 0) * 60 + (parseInt(secInput.value) || 0); ex.sets[i].seconds = sec; scheduleSave(); rememberIfFirst('seconds', sec); } });
+          attachNumberSwipe(secInput.closest('.wt-field'), { step: 1, onChange: (v) => { const sec = (parseInt(minInput.value) || 0) * 60 + (parseInt(v) || 0); ex.sets[i].seconds = sec; scheduleSave(); rememberIfFirst('seconds', sec); } });
         }
         const intensityField = row.querySelector('[data-role="intensity"]');
         if (intensityField) {
@@ -2599,6 +3073,7 @@
             btn.onclick = () => {
               ex.sets[i].intensity = parseInt(btn.dataset.val);
               scheduleSave();
+              rememberIfFirst('intensity', ex.sets[i].intensity);
               render();
             };
           });
@@ -2624,26 +3099,12 @@
 
     const outerSwipe = document.createElement('div');
     outerSwipe.className = 'wt-swipe-wrap';
-    const actions = document.createElement('div');
-    actions.className = 'wt-swipe-actions';
-    const fillBtn = document.createElement('button');
-    fillBtn.className = 'wt-swipe-fill';
-    fillBtn.textContent = 'Same as Last';
-    if (!lastEx) fillBtn.disabled = true;
-    fillBtn.onclick = () => {
-      if (!lastEx) { showToast('No previous data for this exercise'); return; }
-      ex.sets = lastEx.sets.map(s => ({ weight: s.weight, reps: s.reps, seconds: s.seconds, distance: s.distance, checked: s.checked, intensity: s.intensity }));
-      scheduleSave();
-      render();
-    };
     const cardDeleteBtn = document.createElement('button');
-    cardDeleteBtn.className = 'wt-swipe-card-delete';
+    cardDeleteBtn.className = 'wt-swipe-delete';
     cardDeleteBtn.textContent = 'Delete';
     cardDeleteBtn.onclick = () => removeExerciseFromSession(exIdx);
-    actions.appendChild(fillBtn);
-    actions.appendChild(cardDeleteBtn);
-    attachSwipe(card, { fraction: 0.5, excludeSelector: '.wt-set-row-swipe', openThreshold: 0.35, wrapEl: outerSwipe });
-    outerSwipe.appendChild(actions);
+    attachSwipe(card, { excludeSelector: '.wt-set-row-swipe', wrapEl: outerSwipe });
+    outerSwipe.appendChild(cardDeleteBtn);
     outerSwipe.appendChild(card);
 
     return outerSwipe;
@@ -2829,10 +3290,7 @@
       </div>
       <div id="nf-muscle-row" style="display:none;">
         <label>Muscle groups (optional — powers Gym Suggestions)</label>
-        <div id="nf-muscle-wheel-slot"></div>
-        <button type="button" class="wt-btn wt-btn-primary wt-btn-sm" id="nf-muscle-add-btn" style="margin-bottom:10px; width:100%;">+ Add</button>
-        <label>Selected</label>
-        <div id="nf-muscle-chip-row" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;"></div>
+        <div id="nf-muscle-btn-row" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;"></div>
       </div>
     `;
     const detailsRow = form.querySelector('#nf-details-row');
@@ -2840,62 +3298,26 @@
     const addRow = form.querySelector('#nf-field-add-row');
     const chipRow = form.querySelector('#nf-field-chip-row');
     const muscleRow = form.querySelector('#nf-muscle-row');
-    const muscleWheelSlot = form.querySelector('#nf-muscle-wheel-slot');
-    const muscleAddBtn = form.querySelector('#nf-muscle-add-btn');
-    const muscleChipRow = form.querySelector('#nf-muscle-chip-row');
+    const muscleBtnRow = form.querySelector('#nf-muscle-btn-row');
     const typeSelect = form.querySelector('#nf-type');
     typeSelect.value = initial.type || 'weight';
 
-    let muscleWheel = null;
-    function renderMuscleWheel() {
-      const remaining = BUCKETS.filter(b => !selectedMuscles.includes(b));
-      muscleWheelSlot.innerHTML = '';
-      if (remaining.length === 0) {
-        muscleWheel = null;
-        muscleAddBtn.disabled = true;
-        const doneMsg = document.createElement('div');
-        doneMsg.className = 'wt-sub';
-        doneMsg.style.marginBottom = '10px';
-        doneMsg.textContent = 'All muscle groups added.';
-        muscleWheelSlot.appendChild(doneMsg);
-        return;
-      }
-      muscleAddBtn.disabled = false;
-      muscleWheel = buildWheelPicker(remaining.map(b => ({ label: b.charAt(0).toUpperCase() + b.slice(1), value: b })));
-      muscleWheelSlot.appendChild(muscleWheel);
+    function renderMuscleButtons() {
+      muscleBtnRow.innerHTML = '';
+      BUCKETS.forEach(b => {
+        const active = selectedMuscles.includes(b);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'wt-btn wt-btn-sm ' + (active ? 'wt-btn-selected' : 'wt-btn-ghost');
+        btn.textContent = b.charAt(0).toUpperCase() + b.slice(1);
+        btn.onclick = () => {
+          selectedMuscles = active ? selectedMuscles.filter(x => x !== b) : selectedMuscles.concat(b);
+          renderMuscleButtons();
+        };
+        muscleBtnRow.appendChild(btn);
+      });
     }
-
-    function renderMuscleChips() {
-      muscleChipRow.innerHTML = '';
-      if (selectedMuscles.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'wt-sub';
-        empty.textContent = 'No muscle groups selected yet.';
-        muscleChipRow.appendChild(empty);
-      } else {
-        selectedMuscles.forEach(b => {
-          const chip = document.createElement('button');
-          chip.type = 'button';
-          chip.className = 'wt-btn wt-btn-primary wt-btn-sm';
-          chip.textContent = b.charAt(0).toUpperCase() + b.slice(1) + ' ×';
-          chip.onclick = () => {
-            selectedMuscles = selectedMuscles.filter(x => x !== b);
-            renderMuscleWheel();
-            renderMuscleChips();
-          };
-          muscleChipRow.appendChild(chip);
-        });
-      }
-    }
-    muscleAddBtn.onclick = () => {
-      if (!muscleWheel) return;
-      const val = muscleWheel.getValue();
-      if (val && !selectedMuscles.includes(val)) selectedMuscles.push(val);
-      renderMuscleWheel();
-      renderMuscleChips();
-    };
-    renderMuscleWheel();
-    renderMuscleChips();
+    renderMuscleButtons();
 
     function renderFieldPicker() {
       addRow.innerHTML = '';
@@ -2918,7 +3340,7 @@
         customFields.forEach(key => {
           const chip = document.createElement('button');
           chip.type = 'button';
-          chip.className = 'wt-btn wt-btn-primary wt-btn-sm';
+          chip.className = 'wt-btn wt-btn-selected wt-btn-sm';
           chip.textContent = FIELD_TYPES[key].label + ' ×';
           chip.onclick = () => { customFields = customFields.filter(f => f !== key); renderFieldPicker(); };
           chipRow.appendChild(chip);
@@ -2973,13 +3395,15 @@
     return form;
   }
 
-  function buildManage() {
+  function buildManage(embedded) {
     const wrap = document.createElement('div');
-    const back = document.createElement('button');
-    back.className = 'wt-back-btn';
-    back.textContent = '\u2190 Back';
-    back.onclick = () => { view = 'home'; render(); };
-    wrap.appendChild(back);
+    if (!embedded) {
+      const back = document.createElement('button');
+      back.className = 'wt-back-btn';
+      back.textContent = '\u2190 Back';
+      back.onclick = () => { view = 'home'; render(); };
+      wrap.appendChild(back);
+    }
 
     const keys = Object.keys(data.templates);
     if (!keys.includes(manageTab)) manageTab = keys[0] || null;
@@ -2991,7 +3415,7 @@
     tabs.style.marginBottom = '14px';
     keys.forEach(key => {
       const b = document.createElement('button');
-      b.className = 'wt-btn wt-btn-sm ' + (manageTab === key ? 'wt-btn-primary' : 'wt-btn-ghost');
+      b.className = 'wt-btn wt-btn-sm ' + (manageTab === key ? 'wt-btn-selected' : 'wt-btn-ghost');
       b.textContent = data.templates[key].name;
       b.onclick = () => { manageTab = key; pickerOpenFor = null; creatingNew = false; creatingFromCatalog = false; renamingTemplate = null; editingExercise = null; render(); };
       tabs.appendChild(b);
@@ -3155,7 +3579,7 @@
     const currentCategory = getTemplateCategory(tpl);
     TEMPLATE_CATEGORIES.forEach(cat => {
       const b = document.createElement('button');
-      b.className = 'wt-btn wt-btn-sm ' + (currentCategory === cat.key ? 'wt-btn-primary' : 'wt-btn-ghost');
+      b.className = 'wt-btn wt-btn-sm ' + (currentCategory === cat.key ? 'wt-btn-selected' : 'wt-btn-ghost');
       b.textContent = cat.label;
       b.onclick = () => { tpl.category = cat.key; scheduleSave(); render(); };
       categoryRow.appendChild(b);
@@ -3190,13 +3614,30 @@
     return wrap;
   }
 
-  function buildHistory() {
+  const HISTORY_HUB_TABS = [
+    { key: 'trends', label: 'Trends' },
+    { key: 'calendar', label: 'Calendar' },
+    { key: 'history', label: 'History' }
+  ];
+
+  function buildHistoryHub() {
     const wrap = document.createElement('div');
-    const back = document.createElement('button');
-    back.className = 'wt-back-btn';
-    back.textContent = '\u2190 Back';
-    back.onclick = () => { view = 'home'; render(); };
-    wrap.appendChild(back);
+    wrap.appendChild(buildSegmentedNav(HISTORY_HUB_TABS, historySubTab, (key) => { historySubTab = key; render(); }));
+    if (historySubTab === 'history') wrap.appendChild(buildHistory(true));
+    else if (historySubTab === 'trends') wrap.appendChild(buildTrendsPage(true));
+    else wrap.appendChild(buildCalendarPage(true));
+    return wrap;
+  }
+
+  function buildHistory(embedded) {
+    const wrap = document.createElement('div');
+    if (!embedded) {
+      const back = document.createElement('button');
+      back.className = 'wt-back-btn';
+      back.textContent = '\u2190 Back';
+      back.onclick = () => { view = 'home'; render(); };
+      wrap.appendChild(back);
+    }
 
     if (data.sessions.length === 0) {
       const e = document.createElement('div');
@@ -3296,7 +3737,14 @@
   // contributes nothing and is simply excluded from the candidate pool — never throws.
 
   const BUCKETS = ['chest', 'back', 'shoulders', 'biceps', 'triceps', 'quads', 'hamstrings', 'glutes', 'core', 'calves', 'cardio'];
-  const SUGGESTION_WEIGHTS = { fatigue: 2.5, weekly: 1.5, variety: 0.8 };
+  const SUGGESTION_WEIGHTS = { fatigue: 2.5, weekly: 1.5, variety: 0.8, focus: 2.0 };
+
+  const WORKOUT_FOCUS_OPTIONS = [
+    { key: 'fullbody', label: 'Full Body', buckets: null },
+    { key: 'push', label: 'Push', buckets: ['chest', 'shoulders', 'triceps'] },
+    { key: 'pull', label: 'Pull', buckets: ['back', 'biceps'] },
+    { key: 'legs', label: 'Legs', buckets: ['quads', 'hamstrings', 'glutes', 'calves'] }
+  ];
 
   function averageLoggedIntensity(ex) {
     const vals = ex.sets.map(s => +s.intensity).filter(v => v > 0);
@@ -3354,16 +3802,21 @@
 
   function scoreCandidate(entry, ctx) {
     const loadKeys = Object.keys(entry.load || {});
-    let fatigueLoad = 0, weeklyLoad = 0;
+    let fatigueLoad = 0, weeklyLoad = 0, focusScore = 0;
     loadKeys.forEach(b => {
       fatigueLoad += entry.load[b] * (ctx.sessionFatigue[b] || 0);
       weeklyLoad += entry.load[b] * (ctx.recentLoad[b] || 0);
+      if (ctx.focusBuckets && ctx.focusBuckets.includes(b)) focusScore += entry.load[b];
     });
     const key = entry.family || entry.id;
     const seen = ctx.familyLastSeen[key];
     const variety = seen === undefined ? 5 : Math.min(seen, 5);
-    const total = SUGGESTION_WEIGHTS.fatigue * -fatigueLoad + SUGGESTION_WEIGHTS.weekly * -weeklyLoad + SUGGESTION_WEIGHTS.variety * variety;
-    return { total, fatigueLoad, weeklyLoad, variety, hasLoad: loadKeys.length > 0 };
+    const focusWeight = ctx.focusWeight === undefined ? 1 : ctx.focusWeight;
+    const total = SUGGESTION_WEIGHTS.fatigue * -fatigueLoad
+      + SUGGESTION_WEIGHTS.weekly * -weeklyLoad
+      + SUGGESTION_WEIGHTS.variety * variety
+      + SUGGESTION_WEIGHTS.focus * focusScore * focusWeight;
+    return { total, fatigueLoad, weeklyLoad, variety, focusScore, hasLoad: loadKeys.length > 0 };
   }
 
   function suggestionReason(scored, avg) {
@@ -3371,14 +3824,15 @@
     const edges = [
       { val: avg.fatigueLoad - scored.fatigueLoad, text: 'Lower fatigue than the field' },
       { val: avg.weeklyLoad - scored.weeklyLoad, text: 'Lighter on recent load' },
-      { val: scored.variety - avg.variety, text: scored.variety >= 5 ? 'Not done recently' : 'Good variety pick' }
+      { val: scored.variety - avg.variety, text: scored.variety >= 5 ? 'Not done recently' : 'Good variety pick' },
+      { val: scored.focusScore - avg.focusScore, text: 'Matches your focus' }
     ];
     edges.sort((a, b) => b.val - a.val);
     if (edges[0].val <= 0) return 'Good place to start';
     return edges[0].text;
   }
 
-  function computeGymSuggestions(draftExercises, count) {
+  function computeGymSuggestions(draftExercises, count, focusKey) {
     count = count || 3;
     if (!data.settings || !data.settings.gymSuggestions) return [];
     const loggedIds = new Set(draftExercises.map(ex => ex.exerciseId));
@@ -3388,15 +3842,22 @@
     const sessionFatigue = computeSessionFatigue(draftExercises);
     const recentLoad = computeRecentLoad();
     const familyLastSeen = computeFamilyLastSeen();
-    const ctx = { sessionFatigue, recentLoad, familyLastSeen };
+    const focusOpt = WORKOUT_FOCUS_OPTIONS.find(o => o.key === focusKey);
+    const focusBuckets = focusOpt ? focusOpt.buckets : null;
+    // The chosen split matters most when there's no real fatigue signal yet from this
+    // session (start of workout) and fades out as actual logged sets accumulate.
+    const totalSessionFatigue = Object.values(sessionFatigue).reduce((a, b) => a + b, 0);
+    const focusWeight = Math.exp(-totalSessionFatigue);
+    const ctx = { sessionFatigue, recentLoad, familyLastSeen, focusBuckets, focusWeight };
 
     const scored = pool.map(entry => ({ entry, ...scoreCandidate(entry, ctx) }));
     const tracked = scored.filter(c => c.hasLoad);
     const avg = tracked.length ? {
       fatigueLoad: tracked.reduce((s, c) => s + c.fatigueLoad, 0) / tracked.length,
       weeklyLoad: tracked.reduce((s, c) => s + c.weeklyLoad, 0) / tracked.length,
-      variety: tracked.reduce((s, c) => s + c.variety, 0) / tracked.length
-    } : { fatigueLoad: 0, weeklyLoad: 0, variety: 2.5 };
+      variety: tracked.reduce((s, c) => s + c.variety, 0) / tracked.length,
+      focusScore: tracked.reduce((s, c) => s + c.focusScore, 0) / tracked.length
+    } : { fatigueLoad: 0, weeklyLoad: 0, variety: 2.5, focusScore: 0 };
 
     scored.sort((a, b) => b.total - a.total);
     return scored.slice(0, count).map(c => ({ entry: c.entry, reason: suggestionReason(c, avg) }));
@@ -3483,13 +3944,15 @@
     return outer;
   }
 
-  function buildTrendsPage() {
+  function buildTrendsPage(embedded) {
     const wrap = document.createElement('div');
-    const back = document.createElement('button');
-    back.className = 'wt-back-btn';
-    back.textContent = '\u2190 Back';
-    back.onclick = () => { view = 'home'; render(); };
-    wrap.appendChild(back);
+    if (!embedded) {
+      const back = document.createElement('button');
+      back.className = 'wt-back-btn';
+      back.textContent = '\u2190 Back';
+      back.onclick = () => { view = 'home'; render(); };
+      wrap.appendChild(back);
+    }
 
     if (data.sessions.length === 0) {
       const e = document.createElement('div');
@@ -3660,13 +4123,15 @@
     return wrap;
   }
 
-  function buildCalendarPage() {
+  function buildCalendarPage(embedded) {
     const wrap = document.createElement('div');
-    const back = document.createElement('button');
-    back.className = 'wt-back-btn';
-    back.textContent = '\u2190 Back';
-    back.onclick = () => { view = 'home'; render(); };
-    wrap.appendChild(back);
+    if (!embedded) {
+      const back = document.createElement('button');
+      back.className = 'wt-back-btn';
+      back.textContent = '\u2190 Back';
+      back.onclick = () => { view = 'home'; render(); };
+      wrap.appendChild(back);
+    }
 
     const base = new Date();
     base.setDate(1);
